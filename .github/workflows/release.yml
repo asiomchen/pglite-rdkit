@@ -71,14 +71,22 @@ jobs:
 
       # Prereleases go to the `next` dist-tag so `npm install pglite-rdkit` keeps the stable one.
       # The tag can't be changed after staging: reject and re-stage to change it.
+      # Auth is the trusted publisher's OIDC token, which can only stage: other `npm stage`
+      # subcommands (list, view, approve) get a 401, so the stage id is read from this output.
       - name: Stage on npm
+        id: stage
         working-directory: package
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          set -o pipefail
           TAG=${{ steps.version.outputs.prerelease == 'true' && 'next' || 'latest' }}
-          npm stage publish "pglite-rdkit-${{ steps.version.outputs.version }}.tgz" --access public --provenance --tag "$TAG"
-          npm stage list pglite-rdkit
+          npm stage publish "pglite-rdkit-${{ steps.version.outputs.version }}.tgz" --access public --provenance --tag "$TAG" 2>&1 | tee stage.log
+          STAGE_ID=$(grep -oE 'staged with id [0-9a-f-]+' stage.log | awk '{print $4}')
+          echo "id=$STAGE_ID" >> "$GITHUB_OUTPUT"
+          {
+            echo "### pglite-rdkit ${{ steps.version.outputs.version }} staged on npm (\`$TAG\`)"
+            echo
+            echo "Approve with \`npm stage approve $STAGE_ID\` (asks for 2FA), then publish the draft release."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Draft GitHub release
         env:
@@ -88,6 +96,7 @@ jobs:
             "package/pglite-rdkit-${{ steps.version.outputs.version }}.tgz" \
             package/release/rdkit.tar.gz \
             --title "$GITHUB_REF_NAME" \
+            --notes "Staged on npm as \`${{ steps.stage.outputs.id }}\`. Approve with \`npm stage approve ${{ steps.stage.outputs.id }}\` before publishing this release." \
             --generate-notes \
             --draft \
             ${{ steps.version.outputs.prerelease == 'true' && '--prerelease' || '' }}
