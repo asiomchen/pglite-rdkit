@@ -1,0 +1,9 @@
+# Upstream checkouts are reproducible from UPSTREAM.lock via scripts/fetch-upstream.sh
+/upstream/
+.DS_Store
+node_modules/
+/build/
+/dist/
+
+# Local working notes (not committed)
+/notes/

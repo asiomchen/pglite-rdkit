@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RDKit Playground</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>RDKit playground <span class="sub">PGlite + RDKit cartridge, in your browser</span></h1>
+      <span id="status" class="status loading">Starting PGlite…</span>
+    </header>
+    <main>
+      <aside>
+        <h2>Examples</h2>
+        <ul id="examples"></ul>
+        <h2>Table <code>molecules</code></h2>
+        <p class="hint">
+          <code>id</code>, <code>name</code>, <code>m mol</code>, <code>fp bfp</code> (Morgan) — with
+          GiST indexes on <code>m</code> and <code>fp</code>.
+        </p>
+      </aside>
+      <section>
+        <textarea id="editor" spellcheck="false" aria-label="SQL query"></textarea>
+        <div class="toolbar">
+          <button id="run" disabled>Run <kbd>⌘/Ctrl ↵</kbd></button>
+          <span id="timing" class="hint"></span>
+        </div>
+        <div id="results"></div>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

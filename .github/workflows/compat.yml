@@ -1,0 +1,92 @@
+name: Build and compatibility matrix
+
+# Builds rdkit.tar.gz once, then runs the import check and the test suite against every published
+# @electric-sql/pglite release in package/package.json's peerDependencies range. The release list
+# is resolved from npm on every run, so the daily schedule picks up new PGlite releases on its own.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Cache upstream sources
+        uses: actions/cache@v4
+        with:
+          path: upstream
+          key: upstream-${{ hashFiles('UPSTREAM.lock') }}
+
+      - name: Build
+        run: ./scripts/build.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rdkit-bundle
+          path: package/release/rdkit.tar.gz
+          if-no-files-found: error
+
+  versions:
+    runs-on: ubuntu-latest
+    outputs:
+      list: ${{ steps.list.outputs.list }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: package/README.md matches the root README
+        run: ./scripts/sync-readme.sh --check
+
+      - name: Resolve PGlite releases in the supported range
+        id: list
+        run: |
+          RANGE=$(node -p "require('./package/package.json').peerDependencies['@electric-sql/pglite']")
+          LIST=$(npm view "@electric-sql/pglite@$RANGE" version --json | node -e '
+            const v = JSON.parse(require("fs").readFileSync(0, "utf8"))
+            console.log(JSON.stringify([].concat(v)))')
+          echo "range $RANGE -> $LIST"
+          echo "list=$LIST" >> "$GITHUB_OUTPUT"
+
+  compat:
+    needs: [build, versions]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pglite: ${{ fromJSON(needs.versions.outputs.list) }}
+    name: pglite ${{ matrix.pglite }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: rdkit-bundle
+          path: package/release
+
+      - name: Install package dependencies
+        working-directory: package
+        run: npm ci --no-audit --no-fund
+
+      - name: Import check and tests
+        run: ./scripts/compat-matrix.sh ${{ matrix.pglite }}

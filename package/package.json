@@ -1,0 +1,62 @@
+{
+  "name": "pglite-rdkit",
+  "version": "0.0.0",
+  "description": "RDKit cheminformatics PostgreSQL cartridge as a PGlite extension",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asiomchen/pglite-rdkit.git",
+    "directory": "package"
+  },
+  "homepage": "https://github.com/asiomchen/pglite-rdkit#readme",
+  "bugs": {
+    "url": "https://github.com/asiomchen/pglite-rdkit/issues"
+  },
+  "author": "Anton Siomchen",
+  "license": "BSD-3-Clause AND BSL-1.0 AND Apache-2.0 WITH LLVM-exception AND MIT",
+  "keywords": [
+    "postgres",
+    "sql",
+    "database",
+    "wasm",
+    "pglite",
+    "rdkit",
+    "cheminformatics",
+    "chemistry",
+    "molecules"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepack": "../scripts/sync-readme.sh"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.10",
+    "@types/node": "^20.16.11",
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.2"
+  },
+  "peerDependencies": {
+    "@electric-sql/pglite": ">=0.5.0 <0.6.0"
+  }
+}

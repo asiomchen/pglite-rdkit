@@ -1,0 +1,23 @@
+# Pinned upstream inputs. scripts/fetch-upstream.sh checks these out into ./upstream/.
+# Bump PGLITE_* together: headers come from the exact postgres-pglite commit that the reference
+# @electric-sql/pglite release was built from. The supported range of releases is the peer
+# dependency in package/package.json, verified per release by scripts/compat-matrix.sh.
+
+# reference npm release (headers + builder image); must be in the supported range
+PGLITE_NPM_VERSION=0.5.10
+# postgres-pglite commit used for that release (PostgreSQL 18.6); only headers are used
+PGLITE_BACKEND_REPO=https://github.com/electric-sql/postgres-pglite.git
+PGLITE_BACKEND_COMMIT=ff7e84124edf0f08e630a80e8c366fa3f0fe2e6e
+# builder image used by that release (the 6.0.12-1 tag contains emcc 6.0.5; 0.5.0-0.5.9 used emsdk 3.1.74)
+PGLITE_BUILDER_IMAGE=electricsql/pglite-builder:6.0.12-1
+
+RDKIT_REPO=https://github.com/rdkit/rdkit.git
+RDKIT_TAG=Release_2026_09_1
+RDKIT_COMMIT=fece8caa860bdf6c9c82bdb9253f22a0cf87150c
+
+BOOST_VERSION=1.87.0
+BOOST_URL=https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz
+
+# InChI library for mol_inchi/mol_inchikey (same release and md5 RDKit's FindInchi.cmake pins)
+INCHI_URL=https://github.com/IUPAC-InChI/InChI/releases/download/v1.07.3/INCHI-1-SRC.zip
+INCHI_MD5=b761f37a7d3a3ff8574daf6906993759
