@@ -90,7 +90,9 @@ EOF
 
 # --- RDKit ---------------------------------------------------------------------------------
 # Don't use PGLITE_CFLAGS here: its -Dexit=pgl_exit style overrides break the C++ std headers.
-RDKIT_CFLAGS="-m32 -fpic -fwasm-exceptions -sWASM_BIGINT"
+# Compile flags only: these are static libraries, so link settings (-sWASM_BIGINT etc.) belong to
+# build-cartridge.sh, which links them into rdkit.so
+RDKIT_CFLAGS="-m32 -fpic -fwasm-exceptions"
 if [ "${DEBUG:-false}" = true ]; then
   RDKIT_CFLAGS="$RDKIT_CFLAGS -g"
   BUILD_TYPE=Debug

@@ -14,8 +14,10 @@ on:
   workflow_dispatch:
   workflow_call:
 
+# A new run on the same branch or PR cancels the older one. The prefix is fixed rather than
+# github.workflow, which is the caller's name ("Release") when release.yml calls this workflow.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: compat-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

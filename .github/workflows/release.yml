@@ -14,7 +14,7 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+'
       - 'v[0-9]+.[0-9]+.[0-9]+-*'
 
-# Not the same group as compat.yml's (which is evaluated as this workflow when called from here)
+# Separate from compat.yml's group (compat-<ref>), which the call below runs under
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
@@ -26,6 +26,9 @@ jobs:
   stage:
     needs: ci
     runs-on: ubuntu-latest
+    # Must match the environment of the npm trusted publisher (npm trust list pglite-rdkit),
+    # since it's part of the OIDC token npm checks
+    environment: npm
     permissions:
       contents: write
       id-token: write

@@ -10,7 +10,9 @@ BUILD_TYPE=Release
 OPT="-O2"
 if [ "${DEBUG:-false}" = "true" ]; then BUILD_TYPE=Debug; OPT="-g"; fi
 # keep in sync with build-rdkit-libs.sh: every C++ object in rdkit.so must use native wasm EH
-CFLAGS="-m32 -fpic -fwasm-exceptions -sWASM_BIGINT $OPT"
+CFLAGS="-m32 -fpic -fwasm-exceptions $OPT"
+# -s settings are link-only; on the compile line em++ warns about each one for every file
+LDFLAGS="$CFLAGS -sWASM_BIGINT"
 
 PG_INCLUDE=$ROOT/build/pg/include/postgresql/server
 source "$ROOT/scripts/features.sh"
@@ -23,7 +25,7 @@ emcmake cmake -S "$ROOT/cartridge" -B "$BUILD_DIR" -Wno-dev \
     -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
     -DCMAKE_C_FLAGS="$CFLAGS" \
     -DCMAKE_CXX_FLAGS="$CFLAGS" \
-    -DCMAKE_EXE_LINKER_FLAGS="$CFLAGS" \
+    -DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS" \
     -DCMAKE_INSTALL_PREFIX="$STAGE_DIR" \
     -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH \
     -DPG_INCLUDE_DIR_SERVER="$PG_INCLUDE" \
