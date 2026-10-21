@@ -7,3 +7,5 @@ node_modules/
 
 # Local working notes (not committed)
 /notes/
+./site/dist/
+examples/playground/dist/

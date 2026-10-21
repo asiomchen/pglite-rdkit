@@ -1,0 +1,120 @@
+---
+// Replaces Starlight's header with a pglite.dev-style nav: title on the left, text links and
+// icons on the right. On narrow screens the links move into the menu (the sidebar config).
+import SiteTitle from '@astrojs/starlight/components/SiteTitle.astro'
+import SocialIcons from '@astrojs/starlight/components/SocialIcons.astro'
+
+const links = [
+  { label: 'Home', href: '/' },
+  { label: 'Playground', href: '/playground/' },
+  { label: 'REPL', href: '/repl/' },
+  { label: 'PGlite', href: 'https://pglite.dev', external: true },
+  { label: 'RDKit', href: 'https://www.rdkit.org/docs/Cartridge.html', external: true },
+]
+
+const path = Astro.url.pathname
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href))
+---
+
+<div class="header">
+  <div class="title-wrapper sl-flex">
+    <SiteTitle />
+  </div>
+  <nav class="sl-flex print:hidden nav" aria-label="Main">
+    {
+      links.map(({ label, href, external }) => (
+        <a
+          href={href}
+          class:list={['nav-link', { active: !external && isActive(href), 'is-external': external }]}
+          aria-current={!external && isActive(href) ? 'page' : undefined}
+          {...(external ? { target: '_blank', rel: 'noopener' } : {})}
+        >
+          {label}
+          {external && (
+            <svg class="external" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 17 17 7M9 7h8v8" />
+            </svg>
+          )}
+        </a>
+      ))
+    }
+    <span class="divider wide" aria-hidden="true"></span>
+    <div class="sl-flex social-icons wide">
+      <SocialIcons />
+    </div>
+  </nav>
+</div>
+
+<style>
+  .header {
+    display: flex;
+    gap: var(--sl-nav-gap);
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+  }
+  .title-wrapper {
+    overflow: clip;
+    padding: 0.25rem;
+    margin: -0.25rem;
+    min-width: 0;
+  }
+  .nav {
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0 0.75rem;
+    line-height: var(--sl-nav-height);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--sl-color-white);
+    text-decoration: none;
+    transition: color 0.25s;
+  }
+  .nav-link:hover,
+  .nav-link.active {
+    color: var(--sl-color-text-accent);
+  }
+  .external {
+    width: 0.7rem;
+    height: 0.7rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.6;
+  }
+  .divider {
+    width: 1px;
+    height: 1.5rem;
+    margin-inline: 0.5rem;
+    background: var(--sl-color-hairline);
+  }
+  .social-icons {
+    gap: 1rem;
+    align-items: center;
+    padding-inline-start: 0.5rem;
+  }
+  .social-icons :global(a) {
+    color: var(--sl-color-gray-2);
+  }
+  .social-icons :global(a:hover) {
+    color: var(--sl-color-white);
+  }
+  /* splash pages have no sidebar, so Starlight shows no menu button: keep the site's own pages
+     in the header at every width and drop only the external links and icons when narrow */
+  @media (max-width: 50rem) {
+    .nav-link {
+      padding: 0 0.5rem;
+    }
+    .nav-link.is-external,
+    .wide {
+      display: none;
+    }
+  }
+</style>

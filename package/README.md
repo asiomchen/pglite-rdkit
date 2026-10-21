@@ -9,6 +9,8 @@ The [RDKit](https://www.rdkit.org/) PostgreSQL cartridge for
 `sfp` and `reaction` types, substructure and similarity search with GiST indexes,
 fingerprints and molecular descriptors, in the browser and in Node.js.
 
+Try it in the browser at [pglite-rdkit.cheminfo.dev](https://pglite-rdkit.cheminfo.dev).
+
 It works with the stock [`@electric-sql/pglite`](https://www.npmjs.com/package/@electric-sql/pglite)
 from npm: no fork and no changes to PGlite.
 
@@ -178,8 +180,9 @@ cd examples/playground && npm install && npm run dev
 | `scripts/sync-readme.sh` | Copies this README into `package/` for npm (`--check` in CI) |
 | `cartridge/` | Wrapper CMake for the upstream cartridge sources, plus the shims (`pglite_shims.c` for Postgres symbols, `libc_shims.c` for libc) |
 | `scripts/features.sh` | Optional extras for a separate variant build (`RDKIT_FEATURES=avalon`) |
-| `package/` | The npm package (`pglite-rdkit`) and its tests |
+| `package/` | The npm package (`pglite-rdkit`), its tests, and the example queries (`pglite-rdkit/examples`) |
 | `examples/playground/` | Browser playground |
+| `site/` | The website, [pglite-rdkit.cheminfo.dev](https://pglite-rdkit.cheminfo.dev): landing page, playground and REPL ([details](https://github.com/asiomchen/pglite-rdkit/blob/main/site/README.md)) |
 | `.github/workflows/compat.yml` | CI: build once, then test each release; daily schedule |
 
 ### README

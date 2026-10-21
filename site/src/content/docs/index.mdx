@@ -1,0 +1,99 @@
+---
+title: RDKit for PGlite
+description: The RDKit cheminformatics cartridge as a PGlite extension. Store, search and draw molecules with SQL, in the browser or Node.
+template: splash
+editUrl: false
+hero:
+  title: pglite-rdkit
+  image:
+    alt: Caffeine, drawn by RDKit's mol_to_svg
+    dark: ../../assets/hero-dark.svg
+    light: ../../assets/hero-light.svg
+  tagline: RDKit Postgres Cartridge, running in your browser. Store, search and draw molecules with SQL, no PostgreSQL server needed.
+  actions:
+    - text: Open the Playground
+      link: /playground/
+      icon: right-arrow
+    - text: REPL
+      link: /repl/
+      variant: secondary
+    - text: GitHub
+      link: https://github.com/asiomchen/pglite-rdkit
+      icon: github
+      variant: minimal
+---
+
+import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components'
+import LiveDemo from '../../components/LiveDemo.tsx'
+
+<CardGrid>
+  <Card title="The full RDKit cartridge" icon="puzzle">
+    The `mol`, `qmol`, `bfp` and `sfp` types, descriptors, fingerprints, InChI and SVG drawing.
+    It's the same cartridge used with server Postgres, compiled to WebAssembly.
+  </Card>
+  <Card title="Indexed search" icon="magnifier">
+    GiST indexes speed up substructure (`@>`), similarity (`%`) and nearest-neighbour (`<%>`)
+    queries, just as they do on a server.
+  </Card>
+  <Card title="Runs wherever PGlite runs" icon="laptop">
+    Browsers, Node, Bun and Deno. One `extensions: { rdkit }` option and a 2 MB bundle, loaded
+    on demand.
+  </Card>
+  <Card title="Try before you install" icon="rocket">
+    The [Playground](/playground/) and [REPL](/repl/) on this site run the real extension in your
+    browser. Nothing is sent to a server.
+  </Card>
+</CardGrid>
+
+## Install
+
+<Tabs syncKey="pkg">
+  <TabItem label="npm">
+    ```bash
+    npm install @electric-sql/pglite pglite-rdkit
+    ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```bash
+    pnpm add @electric-sql/pglite pglite-rdkit
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```bash
+    yarn add @electric-sql/pglite pglite-rdkit
+    ```
+  </TabItem>
+</Tabs>
+
+```ts
+import { PGlite } from '@electric-sql/pglite'
+import { rdkit } from 'pglite-rdkit'
+
+const pg = await PGlite.create({ extensions: { rdkit } })
+await pg.exec('CREATE EXTENSION rdkit')
+
+const { rows } = await pg.query(`SELECT mol_to_smiles('C1=CC=CC=C1O'::mol) AS smiles`)
+// [{ smiles: 'Oc1ccccc1' }]
+```
+
+In Vite, exclude both packages from `optimizeDeps`, because they find their WebAssembly files
+through `import.meta.url`.
+
+:::caution[Supported PGlite versions]
+Only `@electric-sql/pglite` 0.5.x (`>=0.5.0 <0.6.0`, PostgreSQL 18) is supported. Every 0.5.x
+release is tested in CI.
+:::
+
+Invalid SMILES raises a normal Postgres error, and the database stays usable. The
+[RDKit cartridge documentation](https://www.rdkit.org/docs/Cartridge.html) lists every function.
+Two features aren't in the WebAssembly build: Avalon fingerprints, and FreeType text (labels in
+SVG are drawn as paths). There's more in the
+[README](https://github.com/asiomchen/pglite-rdkit#readme).
+
+## Try It Now
+
+The query below finds every molecule in a sample table that contains a carboxylic acid and draws
+it. Edit the query and press <kbd>⌘/Ctrl</kbd> + <kbd>Enter</kbd> to run it again. For more
+examples, open the [Playground](/playground/). To build your own tables, use the [REPL](/repl/).
+
+<LiveDemo client:only="react" />

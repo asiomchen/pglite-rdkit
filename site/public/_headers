@@ -1,0 +1,23 @@
+# Cloudflare Pages response headers. Vite puts a content hash in every file name under /_astro/,
+# so those can be cached forever.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# streaming compilation (WebAssembly.compileStreaming) requires this exact type
+/_astro/*.wasm
+  Content-Type: application/wasm
+
+# the RDKit bundle (rdkit.tar.gz, renamed rdkit.tar-<hash>.gz by Vite) and PGlite's data file are
+# unpacked by PGlite itself, so they must arrive as-is, never with Content-Encoding: gzip
+/_astro/*.gz
+  Content-Type: application/gzip
+/_astro/*.data
+  Content-Type: application/octet-stream
+
+# Everything runs in the page: no third-party origins. 'wasm-unsafe-eval' allows compiling
+# WebAssembly; molecule SVGs are shown as data: images, and Vite inlines small font subsets as
+# data: URLs. COOP/COEP aren't needed: PGlite doesn't use SharedArrayBuffer.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline'; worker-src 'self' blob:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'

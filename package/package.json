@@ -38,6 +38,16 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./examples": {
+      "import": {
+        "types": "./dist/examples.d.ts",
+        "default": "./dist/examples.js"
+      },
+      "require": {
+        "types": "./dist/examples.d.cts",
+        "default": "./dist/examples.cjs"
+      }
     }
   },
   "files": [

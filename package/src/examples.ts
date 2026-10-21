@@ -1,3 +1,5 @@
+// Sample data and example queries shared by the playground, the website and the test suite
+
 export const SEED_SQL = `
 CREATE EXTENSION IF NOT EXISTS rdkit;
 
@@ -30,14 +32,23 @@ CREATE INDEX molecules_m_idx ON molecules USING gist (m);
 CREATE INDEX molecules_fp_idx ON molecules USING gist (fp);
 `
 
-export const EXAMPLES: { title: string; sql: string }[] = [
+export interface Example {
+  /** stable slug, used for deep links such as /playground/#substructure */
+  id: string
+  title: string
+  sql: string
+}
+
+export const EXAMPLES: Example[] = [
   {
+    id: 'browse',
     title: 'Browse the table',
     sql: `SELECT id, name, m AS smiles, mol_to_svg(m, '', 220, 160) AS structure
 FROM molecules
 ORDER BY id;`,
   },
   {
+    id: 'descriptors',
     title: 'Descriptors',
     sql: `SELECT name,
        round(mol_amw(m)::numeric, 2)  AS mw,
@@ -51,6 +62,7 @@ FROM molecules
 ORDER BY mw DESC;`,
   },
   {
+    id: 'inchi',
     title: 'InChI & InChIKey',
     sql: `SELECT name,
        mol_inchikey(m) AS inchikey,
@@ -59,6 +71,7 @@ FROM molecules
 ORDER BY name;`,
   },
   {
+    id: 'substructure',
     title: 'Substructure search (@>)',
     sql: `-- molecules containing a carboxylic acid
 SELECT name, mol_to_svg(m, '', 220, 160) AS structure
@@ -66,12 +79,14 @@ FROM molecules
 WHERE m @> 'C(=O)[OH]'::qmol;`,
   },
   {
+    id: 'smarts',
     title: 'SMARTS: catechol',
     sql: `SELECT name, m AS smiles, mol_to_svg(m, '', 220, 160) AS structure
 FROM molecules
 WHERE m @> 'c([OH])c[OH]'::qmol;`,
   },
   {
+    id: 'similarity',
     title: 'Similarity search (%)',
     sql: `-- Tanimoto on Morgan fingerprints, threshold via GUC
 SET rdkit.tanimoto_threshold = 0.3;
@@ -84,6 +99,7 @@ WHERE fp % morganbv_fp('Cn1cnc2c1c(=O)n(C)c(=O)n2C'::mol)
 ORDER BY similarity DESC;`,
   },
   {
+    id: 'nearest-neighbours',
     title: 'Nearest neighbours (<%>)',
     sql: `-- KNN ordering by Tanimoto distance using the gist index
 SELECT name,
@@ -93,11 +109,13 @@ ORDER BY fp <%> morganbv_fp('CC(=O)Nc1ccc(O)cc1'::mol)
 LIMIT 5;`,
   },
   {
+    id: 'explain',
     title: 'Check the plan uses the index',
     sql: `SET enable_seqscan = off;
 EXPLAIN SELECT name FROM molecules WHERE m @> 'c1ccccc1'::qmol;`,
   },
   {
+    id: 'canonicalize',
     title: 'Canonicalize & validate',
     sql: `-- is_valid_smiles / mol_from_smiles take cstring, so cast text columns
 SELECT s AS input,
@@ -106,10 +124,12 @@ SELECT s AS input,
 FROM unnest(ARRAY['C1=CC=CC=C1O', 'OC(=O)c1ccccc1', 'C1CC', 'c1cccc1']) AS s;`,
   },
   {
+    id: 'draw',
     title: 'Draw your own molecule',
     sql: `SELECT mol_to_svg('O=C(O)c1ccccc1OC(C)=O'::mol, 'aspirin', 400, 300) AS structure;`,
   },
   {
+    id: 'error-handling',
     title: 'Error handling',
     sql: `-- invalid SMILES raises a normal postgres error
 SELECT 'C1CCxyz'::mol;`,

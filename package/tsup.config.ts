@@ -2,7 +2,7 @@ import { cpSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { defineConfig } from 'tsup'
 
-const entryPoints = ['src/index.ts']
+const entryPoints = ['src/index.ts', 'src/examples.ts']
 
 const minify = process.env.DEBUG === 'true' ? false : true
 

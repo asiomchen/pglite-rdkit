@@ -3,6 +3,7 @@ name: Build and compatibility matrix
 # Builds rdkit.tar.gz once, then runs the import check and the test suite against every published
 # @electric-sql/pglite release in package/package.json's peerDependencies range. The release list
 # is resolved from npm on every run, so the daily schedule picks up new PGlite releases on its own.
+# The site job builds the website on top of the same bundle and deploys it to Cloudflare Pages.
 on:
   push:
     branches: [main]
@@ -90,3 +91,41 @@ jobs:
 
       - name: Import check and tests
         run: ./scripts/compat-matrix.sh ${{ matrix.pglite }}
+
+  # Builds the website (site/) against the bundle from the build job and deploys it to
+  # Cloudflare Pages: main goes to production (pglite-rdkit.cheminfo.dev), other branches and
+  # same-repo PRs get preview URLs. Fork PRs build but can't deploy, as they have no secrets.
+  site:
+    needs: build
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: rdkit-bundle
+          path: package/release
+
+      - name: Build package
+        working-directory: package
+        run: npm ci --no-audit --no-fund && npm run build
+
+      - name: Build site
+        working-directory: site
+        run: npm ci --no-audit --no-fund && npm run build
+
+      - name: Deploy to Cloudflare Pages
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy site/dist --project-name=pglite-rdkit --branch=${{ github.head_ref || github.ref_name }}

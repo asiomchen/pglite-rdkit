@@ -1,6 +1,6 @@
 import { PGlite, type Results } from '@electric-sql/pglite'
 import { rdkit } from 'pglite-rdkit'
-import { EXAMPLES, SEED_SQL } from './examples'
+import { EXAMPLES, SEED_SQL } from 'pglite-rdkit/examples'
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T
 const editor = $<HTMLTextAreaElement>('editor')

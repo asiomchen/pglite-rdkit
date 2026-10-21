@@ -1,0 +1,9 @@
+---
+// Dark only, like pglite.dev (VitePress `appearance: 'force-dark'`). Starlight's ThemeSelect,
+// which reads StarlightThemeProvider, is overridden with an empty component.
+---
+
+<script is:inline>
+  document.documentElement.dataset.theme = 'dark'
+  window.StarlightThemeProvider = { updatePickers() {} }
+</script>
