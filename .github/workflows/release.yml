@@ -1,0 +1,90 @@
+name: Release
+
+# Pushing a semver tag (v1.2.3, or v1.2.3-rc.1 for a prerelease) builds the bundle, runs the full
+# compatibility matrix, stages pglite-rdkit on npm with the tag's version (`npm stage publish`, so
+# nothing is public until a maintainer approves it with 2FA) and creates a draft GitHub release
+# with the same tarball. package/package.json keeps 0.0.0: the tag is the only place the version
+# is written down. To finish a release:
+#   1. npm stage list pglite-rdkit, then npm stage approve <stage-id>  (prompts for 2FA)
+#   2. publish the draft GitHub release; for a stable version that triggers docs.yml
+# Staging needs the package to exist on npm, so the very first version is published by hand.
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+
+# Not the same group as compat.yml's (which is evaluated as this workflow when called from here)
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/compat.yml
+
+  stage:
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      # `npm stage` arrived in npm 11.17; Node 22 ships npm 10
+      - name: Update npm
+        run: npm install -g npm@11.17.0
+
+      - name: Version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::$GITHUB_REF_NAME is not a semver tag"
+            exit 1
+          fi
+          if [[ "$VERSION" == *-* ]]; then PRERELEASE=true; else PRERELEASE=false; fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: rdkit-bundle
+          path: package/release
+
+      - name: Build and pack
+        working-directory: package
+        run: |
+          npm ci --no-audit --no-fund
+          npm version "${{ steps.version.outputs.version }}" --no-git-tag-version
+          npm run build
+          npm pack
+
+      # Prereleases go to the `next` dist-tag so `npm install pglite-rdkit` keeps the stable one.
+      # The tag can't be changed after staging: reject and re-stage to change it.
+      - name: Stage on npm
+        working-directory: package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          TAG=${{ steps.version.outputs.prerelease == 'true' && 'next' || 'latest' }}
+          npm stage publish "pglite-rdkit-${{ steps.version.outputs.version }}.tgz" --access public --provenance --tag "$TAG"
+          npm stage list pglite-rdkit
+
+      - name: Draft GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "package/pglite-rdkit-${{ steps.version.outputs.version }}.tgz" \
+            package/release/rdkit.tar.gz \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            --draft \
+            ${{ steps.version.outputs.prerelease == 'true' && '--prerelease' || '' }}

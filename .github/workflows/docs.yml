@@ -1,0 +1,72 @@
+name: Deploy docs
+
+# Builds the website (site/) against a published pglite-rdkit release from npm and deploys it to
+# Cloudflare Pages production (pglite-rdkit.cheminfo.dev). Run it by hand with a version, or
+# leave the version empty for npm's `latest`. Publishing a stable GitHub release (the draft
+# release.yml creates, after the staged npm version is approved) runs it for that version.
+# The site content comes from the ref the workflow runs on; only the package comes from npm.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'pglite-rdkit version from npm (empty = latest)'
+        required: false
+        type: string
+  release:
+    types: [published]
+
+# One production deploy at a time, and never cancel one halfway
+concurrency:
+  group: docs-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.event_name != 'release' || !github.event.release.prerelease
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Right after a publish or approval the registry can take a few minutes to serve the new version
+      - name: Resolve pglite-rdkit version
+        id: version
+        env:
+          REQUESTED: ${{ inputs.version || github.event.release.tag_name }}
+        run: |
+          REQUESTED=${REQUESTED#v}
+          SPEC="pglite-rdkit@${REQUESTED:-latest}"
+          for i in $(seq 1 30); do
+            VERSION=$(npm view "$SPEC" version 2>/dev/null | tail -n1) && [ -n "$VERSION" ] && break
+            echo "$SPEC not on npm yet, retrying in 10s ($i/30)"
+            sleep 10
+          done
+          if [ -z "$VERSION" ]; then
+            echo "::error::$SPEC was not found on npm"
+            exit 1
+          fi
+          echo "Deploying docs for pglite-rdkit $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Install site with pglite-rdkit from npm
+        working-directory: site
+        run: |
+          npm pkg set "dependencies.pglite-rdkit=${{ steps.version.outputs.version }}"
+          npm install --no-audit --no-fund
+
+      - name: Build site
+        working-directory: site
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy site/dist --project-name=pglite-rdkit --branch=main --commit-message="pglite-rdkit ${{ steps.version.outputs.version }}"

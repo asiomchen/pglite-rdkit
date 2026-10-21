@@ -183,7 +183,9 @@ cd examples/playground && npm install && npm run dev
 | `package/` | The npm package (`pglite-rdkit`), its tests, and the example queries (`pglite-rdkit/examples`) |
 | `examples/playground/` | Browser playground |
 | `site/` | The website, [pglite-rdkit.cheminfo.dev](https://pglite-rdkit.cheminfo.dev): landing page, playground and REPL ([details](https://github.com/asiomchen/pglite-rdkit/blob/main/site/README.md)) |
-| `.github/workflows/compat.yml` | CI: build once, then test each release; daily schedule |
+| `.github/workflows/compat.yml` | CI: build once, then test each release and check the site builds; daily schedule |
+| `.github/workflows/release.yml` | On a `v*` semver tag: CI, then stage on npm and draft a GitHub release |
+| `.github/workflows/docs.yml` | Deploys the site against a version from npm; manual or on a published release |
 
 ### README
 
@@ -191,6 +193,24 @@ This file is the only README. Edit it here at the repository root; `package/READ
 generated copy for npm. Run `./scripts/sync-readme.sh` after editing (`npm pack` and
 `npm publish` also run it). CI fails if the copy is out of date. Links to repository files
 are absolute GitHub URLs so they also work on npmjs.com.
+
+### Releasing
+
+Push a semver tag, for example `git tag v0.1.0 && git push origin v0.1.0`. `release.yml` runs the
+build and the full compatibility matrix, then stages `pglite-rdkit` on npm with the tag's version
+(`package/package.json` stays at `0.0.0`) and creates a draft GitHub release with the same npm
+tarball and `rdkit.tar.gz`. Nothing is public yet. To finish:
+
+1. `npm stage list pglite-rdkit`, then `npm stage approve <stage-id>` (asks for 2FA).
+2. Publish the draft GitHub release. For a stable version this deploys the docs.
+
+A prerelease tag such as `v0.2.0-rc.1` goes to the `next` dist-tag and doesn't deploy the docs.
+Staging needs the package to exist on npm, so the first version is published by hand with
+`npm publish`. To redeploy the docs on their own, run the **Deploy docs** workflow from the
+Actions tab with a version, or leave it empty for the `latest` release on npm.
+
+The workflows need the `NPM_TOKEN` (any granular token with write access; staging never asks
+for 2FA), `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets.
 
 ### Updating
 

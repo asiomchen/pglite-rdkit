@@ -9,3 +9,6 @@ node_modules/
 /notes/
 ./site/dist/
 examples/playground/dist/
+
+# secrets
+.env

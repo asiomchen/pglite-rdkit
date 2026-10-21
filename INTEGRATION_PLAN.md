@@ -73,6 +73,7 @@ onto the supported path.
 | `scripts/build-pg-headers.sh` | Not needed | The monorepo build has the headers |
 | `scripts/check-imports.mjs` | Optional CI check | Same imports file the build already writes (`rdkit.imports`) |
 | `scripts/compat-matrix.sh`, `.github/workflows/compat.yml` | Not needed | The extension ships with exactly one `pglite.wasm` |
+| `.github/workflows/release.yml`, `docs.yml`, `site/` | Not needed | PGlite's changesets release and VitePress docs take over |
 | Packaging in `build-cartridge.sh` | `rdkit.tar.gz` rule in `pglite/other_extensions/Makefile` | Copies the staged files, like the prototype |
 | `package/` | `packages/pglite-rdkit/` | Name `@electric-sql/pglite-rdkit`; `bundle-wasm.ts` instead of the custom tsup step |
 | `package/tests/rdkit.test.ts` | `packages/pglite-rdkit/tests/` | Unchanged; uses `PGlite` from the workspace |
@@ -226,3 +227,4 @@ Add an entry for every decision, discussion or change of plan.
 | Date | Entry |
 |---|---|
 | 2026-10-21 | Plan written. The standalone package covers 0.5.0–0.5.11 with InChI. The monorepo prototype exists but uses JS exceptions. No upstream contact yet. |
+| 2026-10-21 | Added `release.yml` (semver tag → CI, `npm stage publish`, draft GitHub release; docs deploy when the release is published) and `docs.yml` (manual docs deploy from an npm version). `compat.yml` no longer deploys. None of these move into the monorepo. Not yet published to npm. |
