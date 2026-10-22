@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import SqlEditor from './SqlEditor'
-import ResultTable from './ResultTable'
+import ResultTable, { summarizeOutcome } from './ResultTable'
 import SchemaPanel from './SchemaPanel'
 import { track, trackVisibleTime } from '../lib/analytics'
 import { resetDb } from '../lib/client'
@@ -249,6 +249,14 @@ export default function Repl() {
   const namespace = useMemo(() => toNamespace(schema), [schema])
   const ready = status.state === 'ready'
   const prompt = PROMPTS[tx]
+  // on touch screens focusing the prompt on load would pop up the keyboard over the page
+  const [finePointer] = useState(() => matchMedia('(pointer: fine)').matches)
+  const last = entries.at(-1)
+  const announcement = pending
+    ? 'Running…'
+    : last?.outcome
+      ? summarizeOutcome(last.outcome)
+      : (last?.note ?? '')
 
   return (
     <div className="rdkit-app rdkit-repl not-content">
@@ -268,7 +276,10 @@ export default function Repl() {
             Reset database
           </button>
         </div>
-        <div className="rdkit-output" aria-live="polite">
+        <p className="sr-only" aria-live="polite">
+          {announcement}
+        </p>
+        <div className="rdkit-output">
           {entries.length === 0 && !pending && ready && (
             <p className="rdkit-hint">
               The <code>molecules</code> table is ready. Try{' '}
@@ -329,7 +340,7 @@ export default function Repl() {
             enterRuns
             schema={namespace}
             functions={schema.rdkitFunctions}
-            autoFocus
+            autoFocus={finePointer}
           />
         </div>
       </section>

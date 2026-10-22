@@ -48,13 +48,28 @@
 .site-title img {
   height: 1.75rem;
 }
-.sl-markdown-content h2:not(:where(.not-content *)) {
+/* Starlight wraps each heading in .sl-heading-wrapper and makes the h2 inline so the anchor icon
+   can follow the text; the divider, spacing and size go on the wrapper, which sizes the icon in em */
+.sl-markdown-content .sl-heading-wrapper.level-h2 {
   margin-top: 3rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--sl-color-hairline);
   font-size: 1.5rem;
+}
+.sl-markdown-content .sl-heading-wrapper.level-h2 > h2 {
+  font-size: inherit;
   font-weight: 600;
   letter-spacing: -0.02em;
+}
+/* VitePress' h3, which keeps subsections below the 1.5rem h2 (Starlight's default h3 is larger) */
+.sl-markdown-content .sl-heading-wrapper.level-h3 {
+  margin-top: 2rem;
+  font-size: 1.25rem;
+}
+.sl-markdown-content .sl-heading-wrapper.level-h3 > h3 {
+  font-size: inherit;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 .sl-markdown-content a:not(:where(.not-content *)) {
   color: var(--sl-color-text-accent);
@@ -131,6 +146,19 @@
 :root:has(.rdkit-app) .content-panel:first-of-type h1 {
   font-size: var(--sl-text-2xl);
 }
+/* one line under the title on desktop: line height plus the gap to the app */
+:root:has(.rdkit-app) {
+  --rdkit-lead: 2.6rem;
+}
+.rdkit-lead {
+  margin: 0 0 1rem;
+  color: var(--sl-color-gray-2);
+  font-size: var(--sl-text-sm);
+  text-wrap: pretty;
+}
+.rdkit-lead p {
+  margin: 0;
+}
 
 .rdkit-app {
   display: grid;
@@ -138,8 +166,8 @@
   /* the app fills what the header, title and footer leave of the viewport: title panel 4.3rem
      (padding, h1 margin and line), 0.75rem padding above the app, then the footer's 1.5rem flow
      gap, 3rem meta margin, 1.4rem copyright line, 1.5rem gap before the (empty) pagination and
-     0.75rem padding, plus Starlight's 3vh under main */
-  height: calc(100dvh - var(--sl-nav-height) - 13.5rem - 3vh);
+     0.75rem padding, plus Starlight's 3vh under main; --rdkit-lead is the intro line above it */
+  height: calc(100dvh - var(--sl-nav-height) - 13.5rem - var(--rdkit-lead) - 3vh);
   min-height: 32rem;
 }
 .rdkit-playground {
@@ -149,6 +177,10 @@
   grid-template-columns: minmax(0, 1fr) minmax(14rem, 18rem);
 }
 @media (max-width: 50rem) {
+  /* the intro wraps to about three lines on a phone */
+  :root:has(.rdkit-app) {
+    --rdkit-lead: 5.5rem;
+  }
   .rdkit-app {
     height: auto;
   }
@@ -159,7 +191,7 @@
   /* on a phone the REPL itself fills the screen under the title, so the output scrolls and the
      prompt stays at the bottom; the schema follows below it, a page scroll away */
   .rdkit-repl .rdkit-main {
-    height: calc(100dvh - var(--sl-nav-height) - 5.25rem);
+    height: calc(100dvh - var(--sl-nav-height) - 5.25rem - var(--rdkit-lead));
     min-height: 20rem;
   }
   .rdkit-schema {

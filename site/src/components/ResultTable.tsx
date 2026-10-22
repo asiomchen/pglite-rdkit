@@ -4,11 +4,29 @@ import type { RunError, RunOutcome, StatementResult } from '../lib/run'
 
 const PAGE = 100
 
-function Cell({ value }: { value: unknown }) {
+/** RDKit's drawing size, so the row height is reserved before the image decodes */
+function svgSize(svg: string): { width?: number; height?: number } {
+  const size = (attr: string) => {
+    const m = new RegExp(`<svg[^>]*\\s${attr}=['"](\\d+)`).exec(svg)
+    return m ? Number(m[1]) : undefined
+  }
+  return { width: size('width'), height: size('height') }
+}
+
+/** Alt text for drawings: the row's name or id column when there is one */
+function rowLabel(columns: string[], row: unknown[], index: number): string {
+  for (const key of ['name', 'id']) {
+    const i = columns.findIndex((c) => c.toLowerCase() === key)
+    if (i !== -1 && row[i] !== null && row[i] !== undefined) return `Structure of ${formatValue(row[i])}`
+  }
+  return `Structure, row ${index + 1}`
+}
+
+function Cell({ value, label }: { value: unknown; label: string }) {
   const [expanded, setExpanded] = useState(false)
   if (value === null || value === undefined) return <span className="rdkit-null">NULL</span>
   if (isSvg(value)) {
-    return <img className="rdkit-mol" src={svgDataUrl(value)} alt="molecule" loading="lazy" />
+    return <img className="rdkit-mol" src={svgDataUrl(value)} alt={label} loading="lazy" {...svgSize(value)} />
   }
   const text = formatValue(value)
   if (text.length <= MAX_TEXT || expanded) return <>{text}</>
@@ -37,7 +55,7 @@ function Grid({ columns, rows }: { columns: string[]; rows: unknown[][] }) {
           <tr key={r}>
             {row.map((v, c) => (
               <td key={c}>
-                <Cell value={v} />
+                <Cell value={v} label={rowLabel(columns, row, r)} />
               </td>
             ))}
           </tr>
@@ -60,7 +78,7 @@ function Records({ columns, rows }: { columns: string[]; rows: unknown[][] }) {
             <tr key={c}>
               <th scope="row">{columns[c]}</th>
               <td>
-                <Cell value={v} />
+                <Cell value={v} label={rowLabel(columns, row, r)} />
               </td>
             </tr>
           ))}
@@ -147,6 +165,16 @@ export function ErrorBox({ error, sql }: { error: RunError; sql?: string }) {
       {error.hint && `\nHINT: ${error.hint}`}
     </pre>
   )
+}
+
+/** A one-line result for screen readers, which shouldn't have whole tables read out */
+export function summarizeOutcome(outcome: RunOutcome): string {
+  const ms = `${Math.round(outcome.ms)} ms`
+  if (!outcome.ok) return `Error: ${outcome.error.message}`
+  const tables = outcome.results.filter((r) => r.columns.length > 0)
+  if (tables.length === 0) return `Done, ${ms}`
+  const rows = tables.map((r) => count(r.rowCount ?? r.rows.length, 'row')).join(', ')
+  return `${tables.length > 1 ? `${tables.length} results: ` : ''}${rows}, ${ms}`
 }
 
 export default function ResultTable({

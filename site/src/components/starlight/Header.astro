@@ -86,12 +86,22 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
     connectedCallback() {
       const button = this.querySelector('button')!
       const menu = this.querySelector<HTMLElement>('.mobile-menu')!
+      // everything outside the header goes inert while the menu covers it, so Tab stays in the menu
+      const header = this.closest('header')
+      const behind = () =>
+        header?.parentElement ? [...header.parentElement.children].filter((el) => el !== header) : []
       const setOpen = (open: boolean) => {
         button.setAttribute('aria-expanded', String(open))
         menu.hidden = !open
         document.body.style.overflow = open ? 'hidden' : ''
+        for (const el of behind()) (el as HTMLElement).inert = open
+        if (open) menu.querySelector('a')?.focus()
       }
-      button.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'))
+      button.addEventListener('click', () => {
+        const open = button.getAttribute('aria-expanded') !== 'true'
+        setOpen(open)
+        if (!open) button.focus()
+      })
       menu.addEventListener('click', (e) => {
         if ((e.target as Element).closest('a')) setOpen(false)
       })

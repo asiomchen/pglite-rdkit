@@ -28,6 +28,8 @@ export default defineConfig({
       // Umami analytics; data-domains keeps the dev server and previews out of the stats.
       // Custom events are sent from src/lib/analytics.ts
       head: [
+        // mobile browser bars match the dark header
+        { tag: 'meta', attrs: { name: 'theme-color', content: '#1b1b1f' } },
         {
           tag: 'script',
           attrs: {

@@ -14,7 +14,7 @@ hero:
     - text: Open the Playground
       link: /playground/
       icon: right-arrow
-    - text: REPL
+    - text: Open the REPL
       link: /repl/
       variant: secondary
     - text: GitHub
@@ -36,12 +36,12 @@ import LiveDemo from '../../components/LiveDemo.tsx'
     queries, just as they do on a server.
   </Card>
   <Card title="Runs wherever PGlite runs" icon="laptop">
-    Browsers, Node, Bun and Deno. One `extensions: { rdkit }` option and a 2 MB bundle, loaded
-    on demand.
+    Browsers, Node, Bun and Deno. One `extensions: { rdkit }` option adds a 2 MB (gzipped)
+    extension bundle to PGlite, loaded on demand.
   </Card>
   <Card title="Try before you install" icon="rocket">
     The [Playground](/playground/) and [REPL](/repl/) on this site run the real extension in your
-    browser. Nothing is sent to a server.
+    browser. Your queries and data never leave it.
   </Card>
 </CardGrid>
 
@@ -76,24 +76,41 @@ const { rows } = await pg.query(`SELECT mol_to_smiles('C1=CC=CC=C1O'::mol) AS sm
 // [{ smiles: 'Oc1ccccc1' }]
 ```
 
-In Vite, exclude both packages from `optimizeDeps`, because they find their WebAssembly files
-through `import.meta.url`.
+In Vite, exclude both packages from dependency pre-bundling in `vite.config.ts`. They find their
+WebAssembly files through `import.meta.url`, which pre-bundling breaks:
+
+```ts
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  optimizeDeps: { exclude: ['@electric-sql/pglite', 'pglite-rdkit'] },
+})
+```
 
 :::caution[Supported PGlite versions]
 Only `@electric-sql/pglite` 0.5.x (`>=0.5.0 <0.6.0`, PostgreSQL 18) is supported. Every 0.5.x
 release is tested in CI.
 :::
 
-Invalid SMILES raises a normal Postgres error, and the database stays usable. The
-[RDKit cartridge documentation](https://www.rdkit.org/docs/Cartridge.html) lists every function.
-Two features aren't in the WebAssembly build: Avalon fingerprints, and FreeType text (labels in
-SVG are drawn as paths). There's more in the
-[README](https://github.com/asiomchen/pglite-rdkit#readme).
+Invalid SMILES raises a normal Postgres error, and the database stays usable. For every function
+and operator, see the [RDKit cartridge documentation](https://www.rdkit.org/docs/Cartridge.html).
+
+## Differences from Server RDKit
+
+The WebAssembly build leaves out three RDKit components:
+
+- **Avalon**: `avalon_fp` raises an error
+- **Coordgen**: 2D coordinates use RDKit's default depiction
+- **FreeType**: text in SVG drawings is drawn as paths
+
+The README explains
+[how the extension is built](https://github.com/asiomchen/pglite-rdkit#how-it-works) and
+[which PGlite and runtime versions are supported](https://github.com/asiomchen/pglite-rdkit#supported-versions).
 
 ## Try It Now
 
-The query below finds every molecule in a sample table that contains a carboxylic acid and draws
-it. Edit the query and press <kbd>⌘/Ctrl</kbd> + <kbd>Enter</kbd> to run it again. For more
+The query below runs a substructure search (`@>`) for a carboxylic acid over a sample table of
+molecules, and draws every match. Edit the query and press <kbd>⌘/Ctrl</kbd> + <kbd>Enter</kbd> to run it again. For more
 examples, open the [Playground](/playground/). To build your own tables, use the [REPL](/repl/).
 
 <LiveDemo client:only="react" />

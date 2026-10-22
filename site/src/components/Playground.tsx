@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { EXAMPLES } from 'pglite-rdkit/examples'
 import SqlEditor from './SqlEditor'
-import ResultTable from './ResultTable'
+import ResultTable, { summarizeOutcome } from './ResultTable'
 import { track } from '../lib/analytics'
 import { resetDb } from '../lib/client'
 import { decodeShare, encodeShare } from '../lib/format'
@@ -132,7 +132,10 @@ export default function Playground() {
           <span className={`rdkit-status ${status.state}`}>{statusText(status)}</span>
           {outcome && <span className="rdkit-timing">{outcome.result.ms.toFixed(1)} ms</span>}
         </div>
-        <div className="rdkit-results" aria-live="polite">
+        <p className="sr-only" aria-live="polite">
+          {running ? 'Running…' : outcome ? summarizeOutcome(outcome.result) : ''}
+        </p>
+        <div className="rdkit-results">
           {outcome && <ResultTable outcome={outcome.result} sql={outcome.sql} />}
         </div>
       </section>
