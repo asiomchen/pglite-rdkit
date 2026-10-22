@@ -29,7 +29,7 @@ import LiveDemo from '../../components/LiveDemo.tsx'
 <CardGrid>
   <Card title="The full RDKit cartridge" icon="puzzle">
     The `mol`, `qmol`, `bfp` and `sfp` types, descriptors, fingerprints, InChI and SVG drawing.
-    It's the same cartridge used with server Postgres, compiled to WebAssembly.
+    It's the same cartridge used with server Postgres (RDKit 2026.09.1), compiled to WebAssembly.
   </Card>
   <Card title="Indexed search" icon="magnifier">
     GiST indexes speed up substructure (`@>`), similarity (`%`) and nearest-neighbour (`<%>`)
@@ -96,6 +96,10 @@ Invalid SMILES raises a normal Postgres error, and the database stays usable. Fo
 and operator, see the [RDKit cartridge documentation](https://www.rdkit.org/docs/Cartridge.html).
 
 ## Differences from Server RDKit
+
+The extension ships RDKit 2026.09.1
+([`Release_2026_09_1`](https://github.com/rdkit/rdkit/releases/tag/Release_2026_09_1)), cartridge
+version 4.8.0. To check the version at runtime, run `SELECT rdkit_toolkit_version()`.
 
 The WebAssembly build leaves out three RDKit components:
 
