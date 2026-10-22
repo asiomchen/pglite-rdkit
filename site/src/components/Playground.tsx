@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { EXAMPLES } from 'pglite-rdkit/examples'
 import SqlEditor from './SqlEditor'
-import ResultTable from './ResultTable'
+import ResultTable, { summarizeOutcome } from './ResultTable'
+import { track } from '../lib/analytics'
 import { resetDb } from '../lib/client'
 import { decodeShare, encodeShare } from '../lib/format'
 import { changesSchema, runSql, type RunOutcome } from '../lib/run'
@@ -29,12 +30,15 @@ export default function Playground() {
   const [copied, setCopied] = useState(false)
   const sqlRef = useRef(sql)
   sqlRef.current = sql
+  // which example the next run belongs to; 'custom' once the query is edited
+  const exampleRef = useRef<string>(start.id ?? 'shared')
 
   const run = useCallback(
     async (query = sqlRef.current) => {
       if (!pg) return
       setRunning(true)
       const result = await runSql(pg, query)
+      track('playground-run', { example: exampleRef.current, ok: result.ok, ms: Math.round(result.ms) })
       setOutcome({ result, sql: query })
       setRunning(false)
       if (changesSchema(query)) await refreshSchema()
@@ -54,6 +58,7 @@ export default function Playground() {
   const pick = (id: string) => {
     const example = EXAMPLES.find((e) => e.id === id)!
     history.replaceState(null, '', `#${id}`)
+    exampleRef.current = id
     setActiveId(id)
     setSql(example.sql)
     run(example.sql)
@@ -64,11 +69,13 @@ export default function Playground() {
     url.hash = `sql=${encodeShare(sql)}`
     history.replaceState(null, '', url)
     await navigator.clipboard?.writeText(url.href)
+    track('playground-share', { example: exampleRef.current })
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
   }
 
   const reset = async () => {
+    track('playground-reset')
     setRunning(true)
     await resetDb('playground')
     await refreshSchema()
@@ -104,6 +111,7 @@ export default function Playground() {
           onChange={(v) => {
             setSql(v)
             setActiveId(undefined)
+            exampleRef.current = 'custom'
           }}
           onRun={(text) => run(text)}
           schema={namespace}
@@ -124,7 +132,10 @@ export default function Playground() {
           <span className={`rdkit-status ${status.state}`}>{statusText(status)}</span>
           {outcome && <span className="rdkit-timing">{outcome.result.ms.toFixed(1)} ms</span>}
         </div>
-        <div className="rdkit-results" aria-live="polite">
+        <p className="sr-only" aria-live="polite">
+          {running ? 'Running…' : outcome ? summarizeOutcome(outcome.result) : ''}
+        </p>
+        <div className="rdkit-results">
           {outcome && <ResultTable outcome={outcome.result} sql={outcome.sql} />}
         </div>
       </section>

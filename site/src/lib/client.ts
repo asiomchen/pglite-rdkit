@@ -41,6 +41,18 @@ async function seed(pg: PGliteWorker) {
   await pg.exec(rows[0].seeded ? 'CREATE EXTENSION IF NOT EXISTS rdkit;' : SEED_SQL)
 }
 
+/**
+ * Stops whatever the database is doing and opens it again. close() terminates the worker, which
+ * also frees its leader-election lock so the new worker can take over the data directory; work
+ * already committed to IndexedDB survives, an open transaction is lost.
+ */
+export async function restartDb(kind: DbKind): Promise<PGliteWorker> {
+  const old = instances.get(kind)
+  instances.delete(kind)
+  await old?.then((pg) => pg.close()).catch(() => {})
+  return getDb(kind)
+}
+
 /** Drops everything the user created and restores the sample data. */
 export async function resetDb(kind: DbKind) {
   const pg = await getDb(kind)

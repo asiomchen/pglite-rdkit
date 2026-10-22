@@ -48,13 +48,28 @@
 .site-title img {
   height: 1.75rem;
 }
-.sl-markdown-content h2:not(:where(.not-content *)) {
+/* Starlight wraps each heading in .sl-heading-wrapper and makes the h2 inline so the anchor icon
+   can follow the text; the divider, spacing and size go on the wrapper, which sizes the icon in em */
+.sl-markdown-content .sl-heading-wrapper.level-h2 {
   margin-top: 3rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--sl-color-hairline);
   font-size: 1.5rem;
+}
+.sl-markdown-content .sl-heading-wrapper.level-h2 > h2 {
+  font-size: inherit;
   font-weight: 600;
   letter-spacing: -0.02em;
+}
+/* VitePress' h3, which keeps subsections below the 1.5rem h2 (Starlight's default h3 is larger) */
+.sl-markdown-content .sl-heading-wrapper.level-h3 {
+  margin-top: 2rem;
+  font-size: 1.25rem;
+}
+.sl-markdown-content .sl-heading-wrapper.level-h3 > h3 {
+  font-size: inherit;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 .sl-markdown-content a:not(:where(.not-content *)) {
   color: var(--sl-color-text-accent);
@@ -131,12 +146,28 @@
 :root:has(.rdkit-app) .content-panel:first-of-type h1 {
   font-size: var(--sl-text-2xl);
 }
+/* one line under the title on desktop: line height plus the gap to the app */
+:root:has(.rdkit-app) {
+  --rdkit-lead: 2.6rem;
+}
+.rdkit-lead {
+  margin: 0 0 1rem;
+  color: var(--sl-color-gray-2);
+  font-size: var(--sl-text-sm);
+  text-wrap: pretty;
+}
+.rdkit-lead p {
+  margin: 0;
+}
 
 .rdkit-app {
   display: grid;
   gap: 1rem;
-  /* the header and title take the rest; the app fills the viewport */
-  height: calc(100dvh - var(--sl-nav-height) - 7rem);
+  /* the app fills what the header, title and footer leave of the viewport: title panel 4.3rem
+     (padding, h1 margin and line), 0.75rem padding above the app, then the footer's 1.5rem flow
+     gap, 3rem meta margin, 1.4rem copyright line, 1.5rem gap before the (empty) pagination and
+     0.75rem padding, plus Starlight's 3vh under main; --rdkit-lead is the intro line above it */
+  height: calc(100dvh - var(--sl-nav-height) - 13.5rem - var(--rdkit-lead) - 3vh);
   min-height: 32rem;
 }
 .rdkit-playground {
@@ -146,12 +177,31 @@
   grid-template-columns: minmax(0, 1fr) minmax(14rem, 18rem);
 }
 @media (max-width: 50rem) {
+  /* the intro wraps to about three lines on a phone */
+  :root:has(.rdkit-app) {
+    --rdkit-lead: 5.5rem;
+  }
   .rdkit-app {
     height: auto;
   }
   .rdkit-playground,
   .rdkit-repl {
     grid-template-columns: minmax(0, 1fr);
+  }
+  /* on a phone the REPL itself fills the screen under the title, so the output scrolls and the
+     prompt stays at the bottom; the schema follows below it, a page scroll away */
+  .rdkit-repl .rdkit-main {
+    height: calc(100dvh - var(--sl-nav-height) - 5.25rem - var(--rdkit-lead));
+    min-height: 20rem;
+  }
+  .rdkit-schema {
+    border-inline-start: 0;
+    border-top: 1px solid var(--sl-color-hairline);
+    padding: 0.75rem 0 0;
+  }
+  .rdkit-examples {
+    border-inline-end: 0;
+    padding-inline-end: 0;
   }
 }
 
@@ -294,9 +344,16 @@
   margin-top: 1rem;
 }
 .rdkit-table-wrap {
+  /* wide tables scroll sideways, but never vertically: with overflow-x set, overflow-y would turn
+     auto too, and the collapsed borders poking out by half a pixel made every tall result a
+     second scroll box inside the output panel */
   overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid var(--sl-color-hairline);
   border-radius: 0.375rem;
+}
+.rdkit-table-wrap tbody:last-child > tr:last-child > * {
+  border-bottom: 0;
 }
 .rdkit-app table,
 .rdkit-demo table {
@@ -324,6 +381,24 @@
   font-family: var(--sl-font);
   font-weight: 600;
   white-space: nowrap;
+}
+/* expanded (\x) records: names down the left, a psql-style rule above each record */
+.rdkit-app .rdkit-records th {
+  position: static;
+  background: none;
+}
+.rdkit-records th[scope='row'] {
+  width: 1%;
+  color: var(--sl-color-gray-3);
+  font-weight: 500;
+  vertical-align: top;
+}
+.rdkit-app .rdkit-record th {
+  background: var(--sl-color-gray-6);
+  color: var(--sl-color-gray-3);
+  font-family: var(--__sl-font-mono);
+  font-weight: 400;
+  padding-block: 0.2rem;
 }
 .rdkit-mol {
   display: block;
@@ -370,6 +445,23 @@
   background: var(--sl-color-gray-6);
   margin-bottom: 0.5rem;
 }
+/* server notices: plain muted lines like psql prints them, not boxed like errors */
+.rdkit-notices {
+  margin-bottom: 0.5rem;
+}
+.rdkit-notice {
+  margin: 0;
+  padding: 0;
+  background: none;
+  font-family: var(--__sl-font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: var(--sl-color-gray-3);
+}
+.rdkit-notice.warning {
+  color: var(--sl-color-orange-high);
+}
 
 /* repl */
 .rdkit-entry {
@@ -391,6 +483,19 @@
 .rdkit-input-echo span,
 .rdkit-prompt > span {
   color: var(--sl-color-text-accent);
+}
+.rdkit-note {
+  margin: 0;
+  white-space: pre-wrap;
+}
+.rdkit-running {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.rdkit-running .rdkit-hint {
+  font-variant-numeric: tabular-nums;
 }
 /* one bordered row: the rdkit=# label and the editor share font, size and line height, so the
    label sits on the editor's first line and a single line looks vertically centred */

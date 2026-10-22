@@ -1,6 +1,7 @@
 ---
 // Replaces Starlight's header with a pglite.dev-style nav: title on the left, text links and
-// icons on the right. On narrow screens the links move into the menu (the sidebar config).
+// icons on the right. On narrow screens everything moves behind a burger into a full-screen menu,
+// like VitePress' mobile nav (splash pages have no sidebar, so Starlight's own menu never shows).
 import SiteTitle from '@astrojs/starlight/components/SiteTitle.astro'
 import SocialIcons from '@astrojs/starlight/components/SocialIcons.astro'
 
@@ -25,7 +26,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
       links.map(({ label, href, external }) => (
         <a
           href={href}
-          class:list={['nav-link', { active: !external && isActive(href), 'is-external': external }]}
+          class:list={['nav-link', { active: !external && isActive(href) }]}
           aria-current={!external && isActive(href) ? 'page' : undefined}
           {...(external ? { target: '_blank', rel: 'noopener' } : {})}
         >
@@ -38,12 +39,86 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
         </a>
       ))
     }
-    <span class="divider wide" aria-hidden="true"></span>
-    <div class="sl-flex social-icons wide">
+    <span class="divider" aria-hidden="true"></span>
+    <div class="sl-flex social-icons">
       <SocialIcons />
     </div>
   </nav>
+  <rdkit-menu class="print:hidden">
+    <button class="menu-toggle" aria-expanded="false" aria-controls="rdkit-mobile-menu" aria-label="Menu">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path class="open" d="M4 7h16M4 12h16M4 17h16" />
+        <path class="close" d="M6 6l12 12M18 6 6 18" />
+      </svg>
+    </button>
+    <div id="rdkit-mobile-menu" class="mobile-menu" hidden>
+      {
+        links.map(({ label, href, external }) => (
+          <a
+            href={href}
+            class:list={['menu-link', { active: !external && isActive(href) }]}
+            aria-current={!external && isActive(href) ? 'page' : undefined}
+            {...(external ? { target: '_blank', rel: 'noopener' } : {})}
+          >
+            {label}
+            {external && (
+              <svg class="external" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7 17 17 7M9 7h8v8" />
+              </svg>
+            )}
+          </a>
+        ))
+      }
+      <div class="sl-flex social-icons menu-social">
+        <SocialIcons />
+      </div>
+    </div>
+  </rdkit-menu>
 </div>
+
+<script>
+  import { trackOutboundLinks } from '../../lib/analytics'
+
+  // the header is on every page, so this covers outbound links site-wide
+  trackOutboundLinks()
+
+  class RdkitMenu extends HTMLElement {
+    connectedCallback() {
+      const button = this.querySelector('button')!
+      const menu = this.querySelector<HTMLElement>('.mobile-menu')!
+      // everything outside the header goes inert while the menu covers it, so Tab stays in the menu
+      const header = this.closest('header')
+      const behind = () =>
+        header?.parentElement ? [...header.parentElement.children].filter((el) => el !== header) : []
+      const setOpen = (open: boolean) => {
+        button.setAttribute('aria-expanded', String(open))
+        menu.hidden = !open
+        document.body.style.overflow = open ? 'hidden' : ''
+        for (const el of behind()) (el as HTMLElement).inert = open
+        if (open) menu.querySelector('a')?.focus()
+      }
+      button.addEventListener('click', () => {
+        const open = button.getAttribute('aria-expanded') !== 'true'
+        setOpen(open)
+        if (!open) button.focus()
+      })
+      menu.addEventListener('click', (e) => {
+        if ((e.target as Element).closest('a')) setOpen(false)
+      })
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !menu.hidden) {
+          setOpen(false)
+          button.focus()
+        }
+      })
+      // the menu only exists below the breakpoint; don't leave the page scroll-locked past it
+      matchMedia('(min-width: 50rem)').addEventListener('change', (e) => {
+        if (e.matches) setOpen(false)
+      })
+    }
+  }
+  customElements.define('rdkit-menu', RdkitMenu)
+</script>
 
 <style>
   .header {
@@ -76,7 +151,9 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
     transition: color 0.25s;
   }
   .nav-link:hover,
-  .nav-link.active {
+  .nav-link.active,
+  .menu-link:hover,
+  .menu-link.active {
     color: var(--sl-color-text-accent);
   }
   .external {
@@ -106,15 +183,71 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
   .social-icons :global(a:hover) {
     color: var(--sl-color-white);
   }
-  /* splash pages have no sidebar, so Starlight shows no menu button: keep the site's own pages
-     in the header at every width and drop only the external links and icons when narrow */
+
+  /* burger and full-screen menu, below the breakpoint only */
+  rdkit-menu {
+    display: none;
+  }
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-inline-end: -0.5rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--sl-color-white);
+    cursor: pointer;
+  }
+  .menu-toggle svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .menu-toggle[aria-expanded='true'] .open,
+  .menu-toggle[aria-expanded='false'] .close {
+    display: none;
+  }
+  .mobile-menu {
+    position: fixed;
+    inset: var(--sl-nav-height) 0 0;
+    z-index: var(--sl-z-index-menu);
+    overflow-y: auto;
+    padding: 1.5rem 2rem 6rem;
+    background: var(--sl-color-black);
+  }
+  .mobile-menu[hidden] {
+    display: none;
+  }
+  .menu-link {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding-block: 0.75rem;
+    border-bottom: 1px solid var(--sl-color-hairline);
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.5rem;
+    color: var(--sl-color-white);
+    text-decoration: none;
+    transition: color 0.25s;
+  }
+  .menu-social {
+    justify-content: center;
+    padding: 1.5rem 0 0;
+  }
+
   @media (max-width: 50rem) {
-    .nav-link {
-      padding: 0 0.5rem;
-    }
-    .nav-link.is-external,
-    .wide {
+    .nav {
       display: none;
+    }
+    rdkit-menu {
+      display: block;
     }
   }
 </style>

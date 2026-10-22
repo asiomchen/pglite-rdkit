@@ -1,0 +1,93 @@
+---
+title: Privacy
+description: What this site collects, why, and how to opt out.
+template: splash
+tableOfContents: false
+editUrl: false
+pagefind: false
+---
+
+import AnalyticsOptOut from '../../components/AnalyticsOptOut.astro'
+
+_Last updated 22 October 2026_
+
+This site is a static documentation site run by Anton Siomchen
+([anton.siomchen+pglite@gmail.com](mailto:anton.siomchen+pglite@gmail.com)). It has no accounts, no
+cookies and no advertising. It doesn't sell your data or share it with anyone, apart from the
+hosting provider described under [Hosting](#hosting).
+
+## What Runs in Your Browser
+
+The [Playground](/playground/), the [REPL](/repl/) and the demo on the home page run Postgres and
+RDKit entirely in your browser. **The queries you write and the tables you create never leave your
+device**, not even for analytics.
+
+The site keeps a few things in your browser's storage. They stay on your device and are never
+sent anywhere:
+
+- **REPL database**: the tables you create in the REPL, so they're still there next time
+- **REPL history and settings**: the commands you ran (for ↑/↓) and your `\x` and `\timing` choices
+- **Analytics opt-out**: a flag, set only if you turn analytics off below
+
+**Reset database** on the REPL page deletes your tables. Clearing this site's data in your browser
+deletes all of the above.
+
+## Analytics
+
+The site uses a self-hosted instance of [Umami](https://umami.is), a privacy-focused analytics
+tool, to count visits and see which parts of the site get used. It doesn't use cookies or store
+anything on your device, and it doesn't build a profile of you or follow you to other sites.
+
+For each page view, Umami records:
+
+- the page address and the page you came from (the referrer)
+- your browser, operating system, device type, screen size and language
+- your country, derived from your IP address
+
+Umami doesn't store your IP address. It uses it for the country lookup, and combines it with your
+browser details and a secret value into an anonymous visitor ID. That secret value is replaced at
+the start of every month, so visits can be linked within a calendar month but not across months.
+
+The site also sends these events about how it's used:
+
+- **Links**: which external link was clicked (GitHub, npm, RDKit, PGlite and others), where on the
+  page it was, and which page you were on
+- **Queries**: that a query ran in the Playground, REPL or home-page demo, whether it succeeded,
+  how long it took, and which built-in example it was
+- **Buttons**: starting the home-page demo, sharing or resetting the Playground, resetting the
+  REPL database, cancelling a REPL query, and opening a table from the REPL's table list
+- **REPL time**: how long the REPL page was open and how many commands were run
+- **Database start**: how long the in-browser database took to start, or the error if it failed
+
+:::note[Your queries are never sent]
+The SQL you write, the molecules in it and the results it returns are **never** sent to Umami or
+anywhere else. The events above only say that a query ran, not what it was.
+:::
+
+The legal basis is legitimate interest (Article 6(1)(f) GDPR): knowing which pages and features
+are used helps decide what to improve, and the data collected is minimal and not tied to you.
+
+Analytics data is kept for 12 months and then deleted.
+
+### Opting Out
+
+You can turn analytics off for this site in this browser. The choice is saved in your browser's
+storage, so it's lost if you clear this site's data.
+
+<AnalyticsOptOut />
+
+Ad and tracker blockers that block Umami work too.
+
+## Hosting
+
+The site is served by Cloudflare Pages. Like any web host, Cloudflare processes your IP address
+and request details to deliver the pages and protect the site from abuse; see
+[Cloudflare's privacy policy](https://www.cloudflare.com/privacypolicy/).
+
+## Your Rights
+
+Because analytics data isn't linked to you, it usually can't be found or deleted for one person.
+You still have the rights the GDPR gives you, including to ask about, object to or complain about
+how your data is processed, and to complain to your data protection authority. For privacy
+questions or requests, email
+[anton.siomchen+pglite@gmail.com](mailto:anton.siomchen+pglite@gmail.com).

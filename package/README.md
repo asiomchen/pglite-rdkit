@@ -92,6 +92,11 @@ full list of functions and operators.
 
 ## Supported versions
 
+This release ships RDKit 2026.09.1
+([`Release_2026_09_1`](https://github.com/rdkit/rdkit/releases/tag/Release_2026_09_1)), with
+cartridge extension version 4.8.0. `SELECT rdkit_toolkit_version()` returns the RDKit version at
+runtime.
+
 | Target | Status |
 | --- | --- |
 | `@electric-sql/pglite` 0.5.x (PostgreSQL 18) | Supported. Every published release in `>=0.5.0 <0.6.0` is tested in CI, and the run repeats daily to pick up new releases |
@@ -222,7 +227,9 @@ for 2FA), `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets.
 - **New RDKit release:** update `RDKIT_TAG` and `RDKIT_COMMIT` (and `INCHI_URL`/`INCHI_MD5` if
   RDKit's `Code/cmake/Modules/FindInchi.cmake` pins a new InChI), then check `RDKITVER` in
   `cartridge/CMakeLists.txt` and the cartridge source list against
-  `Code/PgSQL/rdkit/CMakeLists.txt` upstream.
+  `Code/PgSQL/rdkit/CMakeLists.txt` upstream. Update the RDKit version in the badge, under
+  [Supported versions](#supported-versions), and on the site
+  (`site/src/content/docs/index.mdx`).
 
 ## License
 
