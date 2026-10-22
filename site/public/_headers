@@ -16,7 +16,8 @@
 
 # Everything runs in the page; the only other origin is the Umami analytics server, for its script
 # and the events it sends (see /privacy/). 'wasm-unsafe-eval' allows compiling WebAssembly;
-# molecule SVGs are shown as data: images, and Vite inlines small font subsets as data: URLs. COOP/COEP aren't needed: PGlite doesn't use SharedArrayBuffer.
+# molecule SVGs are shown as data: images, and Vite inlines small font subsets as data: URLs.
+# COOP/COEP aren't needed: PGlite doesn't use SharedArrayBuffer.
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin

@@ -10,14 +10,19 @@ import { editorThemes } from '../lib/editorTheme'
 interface Props {
   value: string
   onChange: (value: string) => void
-  /** Mod-Enter, or plain Enter when `enterRuns` is set; gets the editor's text */
-  onRun: (text: string) => void
+  /**
+   * Mod-Enter, or plain Enter when `enterRuns` is set; gets the editor's text. With `enterRuns`,
+   * returning false means "not accepted" (e.g. still busy) and keeps the text in the editor
+   */
+  onRun: (text: string) => unknown
   schema?: SQLNamespace
   functions?: string[]
   /** REPL behaviour: Enter runs and clears the editor, Shift-Enter inserts a newline */
   enterRuns?: boolean
   /** REPL history navigation: the entry to show, or undefined to leave the editor alone */
   onHistory?: (direction: -1 | 1) => string | undefined
+  /** Ctrl-C with nothing selected, like psql; return false to let the key through */
+  onCancel?: () => boolean
   minHeight?: string
   autoFocus?: boolean
 }
@@ -30,13 +35,14 @@ export default function SqlEditor({
   functions = [],
   enterRuns = false,
   onHistory,
+  onCancel,
   minHeight,
   autoFocus,
 }: Props) {
   const theme = useStarlightTheme()
   // the keymap is built once, so read the latest callbacks through refs
-  const handlers = useRef({ onRun, onHistory })
-  handlers.current = { onRun, onHistory }
+  const handlers = useRef({ onRun, onHistory, onCancel })
+  handlers.current = { onRun, onHistory, onCancel }
 
   const extensions = useMemo(() => {
     // listing the RDKit functions as builtins gets them highlighted like Postgres' own
@@ -63,8 +69,8 @@ export default function SqlEditor({
         selection: { anchor: text.length },
       })
     const run = (view: EditorView) => {
-      handlers.current.onRun(view.state.doc.toString())
-      if (enterRuns) replace(view, '')
+      const accepted = handlers.current.onRun(view.state.doc.toString())
+      if (enterRuns && accepted !== false) replace(view, '')
       return true
     }
     const browse = (view: EditorView, direction: -1 | 1) => {
@@ -74,6 +80,9 @@ export default function SqlEditor({
       replace(view, text)
       return true
     }
+    // with a selection, Ctrl-C stays copy (it is copy on Windows and Linux)
+    const cancel = (view: EditorView) =>
+      view.state.selection.main.empty && (handlers.current.onCancel?.() ?? false)
     return [
       language,
       language.language.data.of({
@@ -82,6 +91,7 @@ export default function SqlEditor({
       Prec.highest(
         keymap.of([
           { key: 'Mod-Enter', run },
+          { key: 'Ctrl-c', run: cancel },
           ...(enterRuns
             ? [
                 { key: 'Enter', run: (view: EditorView) => !completing(view) && run(view) },
