@@ -77,6 +77,11 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
 </div>
 
 <script>
+  import { trackOutboundLinks } from '../../lib/analytics'
+
+  // the header is on every page, so this covers outbound links site-wide
+  trackOutboundLinks()
+
   class RdkitMenu extends HTMLElement {
     connectedCallback() {
       const button = this.querySelector('button')!

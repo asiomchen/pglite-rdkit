@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import SqlEditor from './SqlEditor'
 import ResultTable from './ResultTable'
 import SchemaPanel from './SchemaPanel'
+import { track, trackVisibleTime } from '../lib/analytics'
 import { resetDb } from '../lib/client'
 import { changesSchema, isDescribe, runDescribe, runSql, type RunOutcome } from '../lib/run'
 import { toNamespace } from '../lib/schema'
@@ -47,12 +48,27 @@ export default function Repl() {
   const outputEnd = useRef<HTMLDivElement>(null)
   const inputRef = useRef(input)
   inputRef.current = input
+  // queries run during the current visible stretch, reported with repl-time
+  const queries = useRef(0)
+
+  useEffect(
+    () =>
+      trackVisibleTime('repl-time', () => {
+        const count = queries.current
+        queries.current = 0
+        return { queries: count }
+      }),
+    [],
+  )
 
   const execute = useCallback(
     async (query: string) => {
       if (!pg || !query.trim()) return
       setRunning(true)
-      const outcome = isDescribe(query) ? await runDescribe(pg, query) : await runSql(pg, query)
+      const describe = isDescribe(query)
+      const outcome = describe ? await runDescribe(pg, query) : await runSql(pg, query)
+      queries.current++
+      track('repl-run', { ok: outcome.ok, describe, ms: Math.round(outcome.ms) })
       setEntries((list) => [...list, { id: nextId.current++, sql: query, outcome }])
       setRunning(false)
       if (history.current.at(-1) !== query) {
@@ -80,6 +96,7 @@ export default function Repl() {
 
   const reset = async () => {
     if (!confirm('Drop every table in the REPL database and restore the sample data?')) return
+    track('repl-reset')
     setRunning(true)
     await resetDb('repl')
     await refreshSchema()
@@ -138,7 +155,13 @@ export default function Repl() {
           />
         </div>
       </section>
-      <SchemaPanel schema={schema} onPick={(sql) => execute(sql)} />
+      <SchemaPanel
+        schema={schema}
+        onPick={(sql) => {
+          track('repl-schema-pick')
+          execute(sql)
+        }}
+      />
     </div>
   )
 }

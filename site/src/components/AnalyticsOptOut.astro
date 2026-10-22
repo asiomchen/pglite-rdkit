@@ -1,0 +1,62 @@
+---
+// The opt-out switch on the privacy page. Umami skips tracking while `umami.disabled` is set in
+// localStorage, and src/lib/analytics.ts checks the same key before sending custom events.
+---
+
+<analytics-opt-out class="not-content">
+  <p class="state" aria-live="polite">Analytics are on for this browser.</p>
+  <button type="button" hidden>Turn off analytics</button>
+</analytics-opt-out>
+
+<script>
+  import { analyticsDisabled, setAnalyticsDisabled } from '../lib/analytics'
+
+  class AnalyticsOptOut extends HTMLElement {
+    connectedCallback() {
+      const state = this.querySelector('.state')!
+      const button = this.querySelector('button')!
+      const render = () => {
+        const off = analyticsDisabled()
+        state.textContent = off ? 'Analytics are off for this browser.' : 'Analytics are on for this browser.'
+        button.textContent = off ? 'Turn analytics back on' : 'Turn off analytics'
+      }
+      button.addEventListener('click', () => {
+        setAnalyticsDisabled(!analyticsDisabled())
+        render()
+      })
+      render()
+      button.hidden = false
+    }
+  }
+  customElements.define('analytics-opt-out', AnalyticsOptOut)
+</script>
+
+<style>
+  analytics-opt-out {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    margin-block: 1rem;
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    background: var(--sl-color-gray-6);
+  }
+  .state {
+    margin: 0;
+    color: var(--sl-color-gray-2);
+  }
+  button {
+    padding: 0.35rem 0.9rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.375rem;
+    background: var(--sl-color-black);
+    color: var(--sl-color-white);
+    font: inherit;
+    font-size: var(--sl-text-sm);
+    cursor: pointer;
+  }
+  button:hover {
+    border-color: var(--sl-color-gray-4);
+  }
+</style>

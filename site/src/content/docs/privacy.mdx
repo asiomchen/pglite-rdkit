@@ -1,0 +1,77 @@
+---
+title: Privacy
+description: What this site collects, why, and how to opt out.
+template: splash
+tableOfContents: false
+editUrl: false
+pagefind: false
+---
+
+import AnalyticsOptOut from '../../components/AnalyticsOptOut.astro'
+
+_Last updated 22 October 2026_
+
+This site is a static documentation site run by Anton Siomchen. It has no accounts, no
+cookies and no advertising, and it doesn't share data with anyone else.
+
+## What Runs in Your Browser
+
+The [Playground](/playground/), the [REPL](/repl/) and the demo on the home page run Postgres and
+RDKit entirely in your browser. **The queries you write and the tables you create never leave your
+device**, not even for analytics. The REPL keeps its database and command history in your browser's storage so they're
+still there next time. **Reset database** on the REPL page, or clearing this site's data in your
+browser, deletes them.
+
+## Analytics
+
+The site uses a self-hosted instance of [Umami](https://umami.is), a privacy-focused analytics
+tool, to count visits and see which parts of the site get used. It doesn't use cookies or store
+anything on your device, and it doesn't build a profile of you or follow you to other sites.
+
+For each page view, Umami records:
+
+- the page address and the page you came from (the referrer)
+- your browser, operating system, device type, screen size and language
+- your country, derived from your IP address
+
+Your IP address is used for the country lookup and to tell visits apart, and is then discarded.
+Umami combines it with your browser details and a salt that changes regularly into a value that
+can't be traced back to you or linked across days.
+
+The site also sends a few events about how it's used:
+
+- which external links are clicked (GitHub, npm, RDKit, PGlite and others)
+- that a query ran in the Playground, REPL or home-page demo, whether it succeeded and how long it
+  took, and which built-in example it was
+- how long the REPL was open and how many commands were run
+- how long the in-browser database took to start, or the error if it failed
+
+:::note[Your queries are never sent]
+The SQL you write, the molecules in it and the results it returns are **never** sent to Umami or
+anywhere else. The events above only say that a query ran, not what it was.
+:::
+
+The legal basis is legitimate interest (Article 6(1)(f) GDPR): knowing which pages and features
+are used helps decide what to improve, and the data collected is minimal and not tied to you.
+
+### Opting Out
+
+You can turn analytics off for this site in this browser. The choice is saved in your browser's
+storage, so it's lost if you clear this site's data.
+
+<AnalyticsOptOut />
+
+Ad and tracker blockers that block Umami work too.
+
+## Hosting
+
+The site is served by Cloudflare Pages. Like any web host, Cloudflare processes your IP address
+and request details to deliver the pages and protect the site from abuse; see
+[Cloudflare's privacy policy](https://www.cloudflare.com/privacypolicy/).
+
+## Your Rights
+
+Because analytics data isn't linked to you, it usually can't be found or deleted for one person.
+You still have the rights the GDPR gives you, including to ask about, object to or complain about
+how your data is processed, and to complain to your data protection authority. For questions,
+[open an issue on GitHub](https://github.com/asiomchen/pglite-rdkit/issues).

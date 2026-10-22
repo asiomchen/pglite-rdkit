@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { EXAMPLES } from 'pglite-rdkit/examples'
 import SqlEditor from './SqlEditor'
 import ResultTable from './ResultTable'
+import { track } from '../lib/analytics'
 import { runSql, type RunOutcome } from '../lib/run'
 import { statusText, useDb } from '../lib/useDb'
 
@@ -18,7 +19,10 @@ export default function LiveDemo() {
 
   const run = useCallback(
     async (query = sqlRef.current) => {
-      if (pg) setOutcome(await runSql(pg, query))
+      if (!pg) return
+      const result = await runSql(pg, query)
+      track('demo-run', { ok: result.ok, ms: Math.round(result.ms) })
+      setOutcome(result)
     },
     [pg],
   )
@@ -40,7 +44,14 @@ export default function LiveDemo() {
           </>
         ) : (
           <>
-            <button type="button" className="rdkit-primary" onClick={() => setStarted(true)}>
+            <button
+              type="button"
+              className="rdkit-primary"
+              onClick={() => {
+                track('demo-start')
+                setStarted(true)
+              }}
+            >
               Start Postgres + RDKit
             </button>
             <span className="rdkit-hint">Downloads about 11 MB of WebAssembly, then runs in your browser.</span>

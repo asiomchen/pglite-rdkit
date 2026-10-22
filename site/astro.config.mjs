@@ -25,6 +25,19 @@ export default defineConfig({
       description:
         'The RDKit cheminformatics cartridge as a PGlite extension: molecules in Postgres, in the browser.',
       favicon: '/favicon.svg',
+      // Umami analytics; data-domains keeps the dev server and previews out of the stats.
+      // Custom events are sent from src/lib/analytics.ts
+      head: [
+        {
+          tag: 'script',
+          attrs: {
+            defer: true,
+            src: 'https://umami.cheminfo.dev/script.js',
+            'data-website-id': '1e36c19d-3b61-4a61-8b62-78d79bfc15c1',
+            'data-domains': 'pglite-rdkit.cheminfo.dev',
+          },
+        },
+      ],
       logo: { src: './src/assets/logo.svg', alt: '' },
       social: [
         { icon: 'github', label: 'GitHub', href: repo },
@@ -39,6 +52,7 @@ export default defineConfig({
       ],
       components: {
         Header: './src/components/starlight/Header.astro',
+        Footer: './src/components/starlight/Footer.astro',
         ThemeProvider: './src/components/starlight/ThemeProvider.astro',
         ThemeSelect: './src/components/starlight/ThemeSelect.astro',
       },

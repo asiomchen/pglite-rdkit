@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { PGliteWorker } from '@electric-sql/pglite/worker'
 import { getDb, rdkitVersion, type DbKind } from './client'
 import { loadSchema, type SchemaInfo } from './schema'
+import { track } from './analytics'
 
 export type DbStatus =
   | { state: 'loading' }
@@ -17,6 +18,7 @@ export function useDb(kind: DbKind, enabled = true) {
   useEffect(() => {
     if (!enabled) return
     let cancelled = false
+    const started = performance.now()
     getDb(kind)
       .then(async (db) => {
         const [version, info] = await Promise.all([rdkitVersion(db), loadSchema(db)])
@@ -24,9 +26,12 @@ export function useDb(kind: DbKind, enabled = true) {
         setPg(db)
         setSchema(info)
         setStatus({ state: 'ready', version })
+        track('db-ready', { db: kind, ms: Math.round(performance.now() - started) })
       })
       .catch((e) => {
-        if (!cancelled) setStatus({ state: 'error', message: e instanceof Error ? e.message : String(e) })
+        const message = e instanceof Error ? e.message : String(e)
+        track('db-error', { db: kind, message })
+        if (!cancelled) setStatus({ state: 'error', message })
       })
     return () => {
       cancelled = true
