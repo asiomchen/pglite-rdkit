@@ -201,21 +201,31 @@ are absolute GitHub URLs so they also work on npmjs.com.
 
 ### Releasing
 
-Push a semver tag, for example `git tag v0.1.0 && git push origin v0.1.0`. `release.yml` runs the
-build and the full compatibility matrix, then stages `pglite-rdkit` on npm with the tag's version
+Every version goes through `release.yml`; nothing is published by hand. Push a semver tag, for
+example `git tag v0.1.0 && git push origin v0.1.0`. The workflow runs the build and the full
+compatibility matrix, then stages `pglite-rdkit` on npm with the tag's version
 (`package/package.json` stays at `0.0.0`) and creates a draft GitHub release with the same npm
 tarball and `rdkit.tar.gz`. Nothing is public yet. To finish:
 
-1. `npm stage list pglite-rdkit`, then `npm stage approve <stage-id>` (asks for 2FA).
+1. Approve the staged version: `npm stage approve <stage-id>` (asks for 2FA). The stage id is in
+   the workflow's job summary and the draft release notes; `npm stage list pglite-rdkit` also
+   shows it.
 2. Publish the draft GitHub release. For a stable version this deploys the docs.
 
-A prerelease tag such as `v0.2.0-rc.1` goes to the `next` dist-tag and doesn't deploy the docs.
-Staging needs the package to exist on npm, so the first version is published by hand with
-`npm publish`. To redeploy the docs on their own, run the **Deploy docs** workflow from the
-Actions tab with a version, or leave it empty for the `latest` release on npm.
+Test a release with a prerelease tag first, such as `v0.2.0-rc.1`. It goes to the `next`
+dist-tag, so `npm install pglite-rdkit` keeps the stable version, and it doesn't deploy the docs.
+Try it with `npm install pglite-rdkit@next`, then push the stable tag. Until the first stable
+release, `latest` points at `0.0.1-rc.1`.
 
-The workflows need the `NPM_TOKEN` (any granular token with write access; staging never asks
-for 2FA), `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets.
+To redeploy the docs on their own, run the **Deploy docs** workflow from the Actions tab with a
+version, or leave it empty for the `latest` release on npm.
+
+npm authentication uses a [trusted publisher](https://docs.npmjs.com/trusted-publishers/)
+(OIDC), not a token. It is configured on npmjs.com for this repository, the `release.yml`
+workflow and the `npm` environment; all three must match, so renaming the workflow file or the
+environment needs the same change on npm (`npm trust list pglite-rdkit` shows the current
+setting). The OIDC token can only stage, so approval always needs a maintainer with 2FA. The
+docs workflow needs the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets.
 
 ### Updating
 

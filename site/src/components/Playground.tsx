@@ -59,12 +59,25 @@ export default function Playground() {
   }
 
   const reset = async () => {
+    if (!pg || running) return
     track('playground-reset')
+    const started = performance.now()
     setRunning(true)
-    await resetDb('playground')
-    await refreshSchema()
-    setRunning(false)
-    run()
+    try {
+      // A reset must escape an open or failed transaction before changing the schema.
+      await pg.exec('ROLLBACK')
+      await resetDb('playground')
+      await refreshSchema()
+      await run()
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e)
+      setOutcome({
+        result: { ok: false, error: { message: `Reset failed: ${message}` }, ms: performance.now() - started },
+        sql: '',
+      })
+    } finally {
+      setRunning(false)
+    }
   }
 
   const namespace = useMemo(() => toNamespace(schema), [schema])
