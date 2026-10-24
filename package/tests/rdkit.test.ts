@@ -210,7 +210,7 @@ describe(`rdkit`, () => {
     )
     expect(res.rows).toHaveLength(1)
     expect(res.rows[0].svg).toMatch(/<svg/)
-    // without FreeType the legend is drawn as paths, so look for its group rather than the text
+    // without FreeType, SVG text remains in <text> elements that use browser fonts
     expect(res.rows[0].svg).toContain("class='legend'")
     expect(res.rows[0].svg).toContain("class='atom-3'")
   })

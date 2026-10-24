@@ -407,7 +407,8 @@ binary output and stored-data reloads; it does not fix that receiver.
   "Avalon support not enabled". The `RDKIT_FEATURES=avalon` variant builds and computes
   fingerprints, but needs `fmemopen`, `tmpfile` and `rewind` (Avalon's molfile I/O, unreachable from
   the cartridge), which no release exports, so it fails `check-imports.mjs`. No Coordgen (depiction
-  uses RDKit's own depictor). Without FreeType, `MolDraw2D` draws text as paths.
+  uses RDKit's own depictor). Without FreeType, `MolDraw2D` emits SVG text as `<text>` elements that
+  use browser fonts; molecular bonds can still be drawn as paths.
 - **The export list isn't a stable API.** A release may drop a symbol. The matrix detects this
   within a day, but published versions of this package can't be fixed retroactively.
 - **Toolchain coupling.** libc++ symbols shared with `pglite.wasm` (see

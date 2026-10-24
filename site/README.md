@@ -32,9 +32,13 @@ links.
 
 ## Deploy
 
-The `site` job in `.github/workflows/compat.yml` builds the site on top of the bundle
-from the `build` job and runs `wrangler pages deploy` to the `pglite-rdkit` Cloudflare
-Pages project. `main` goes to production; other branches and same-repo PRs get preview
-URLs. It needs the `CLOUDFLARE_API_TOKEN` (Pages: Edit) and `CLOUDFLARE_ACCOUNT_ID`
-repository secrets, and `pglite-rdkit.cheminfo.dev` added as a custom domain of the
-Pages project.
+`.github/workflows/docs.yml` deploys the production site to the `pglite-rdkit`
+Cloudflare Pages project at `pglite-rdkit.cheminfo.dev`. Run **Deploy docs** manually
+with a published npm version, or leave the version empty to use npm’s `latest`.
+Publishing a stable GitHub release also deploys its version; publishing a prerelease
+does not trigger deployment.
+The workflow builds site content from the ref it runs on and installs `pglite-rdkit`
+from npm. It needs the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository
+secrets, and the domain configured as a custom domain of the Pages project.
+The site job in `.github/workflows/compat.yml` only builds the site for CI; it does not
+deploy previews for branches or pull requests.

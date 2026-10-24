@@ -108,8 +108,9 @@ tested rather than assumed. See the
 ## Not included
 
 The build leaves out Avalon, Coordgen and FreeType: `avalon_fp` raises an error, 2D
-coordinates use RDKit's default depiction, and SVG text is drawn as paths. InChI is
-included (`mol_inchi`, `mol_inchikey`).
+coordinates use RDKit's default depiction, and SVG text is emitted as `<text>` elements
+that use browser fonts. Molecular bonds can still be drawn as paths. InChI is included
+(`mol_inchi`, `mol_inchikey`).
 
 ## Bundle size
 

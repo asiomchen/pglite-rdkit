@@ -105,7 +105,8 @@ The WebAssembly build leaves out three RDKit components:
 
 - **Avalon**: `avalon_fp` raises an error
 - **Coordgen**: 2D coordinates use RDKit's default depiction
-- **FreeType**: text in SVG drawings is drawn as paths
+- **FreeType**: SVG text is emitted as `<text>` elements that use browser fonts; molecular bonds
+  can still be drawn as paths
 
 The README explains
 [how the extension is built](https://github.com/asiomchen/pglite-rdkit#how-it-works) and
