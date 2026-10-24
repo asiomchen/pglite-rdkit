@@ -115,7 +115,7 @@ included (`mol_inchi`, `mol_inchikey`).
 
 ## Bundle size
 
-The extension tarball is about 2.1 MB gzipped (the wasm side module is 8.0 MB
+The extension tarball is about 2.2 MB gzipped (the wasm side module is 8.1 MB
 uncompressed; InChI accounts for about 0.4 MB of the download). It is downloaded only when you pass `rdkit` to `extensions`.
 
 ## How it works
@@ -234,8 +234,8 @@ for 2FA), `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets.
 ## License
 
 The wrapper, the RDKit cartridge, RingDecomposerLib and Novartis-contributed RDKit code are
-BSD-3-Clause. The bundle also includes Boost
-header-only code (BSL-1.0), the LLVM libc++/libc++abi/libunwind runtime (Apache-2.0 WITH
+BSD-3-Clause. The bundle also includes Boost headers and static serialization/iostreams
+libraries (BSL-1.0), the LLVM libc++/libc++abi/libunwind runtime (Apache-2.0 WITH
 LLVM-exception) and the InChI library (MIT). See [LICENSE](https://github.com/asiomchen/pglite-rdkit/blob/main/package/LICENSE).
 
 The extension archive also includes the complete license file at `share/doc/rdkit/LICENSE`.

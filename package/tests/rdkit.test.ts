@@ -2,6 +2,14 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { PGlite } from '@electric-sql/pglite'
 import { rdkit } from '../src/index.js'
 
+// Upstream xqm.sql exercises all four representations, not just single-molecule queries.
+const extendedQueries = [
+  { type: '1', query: 'CCO', match: 'CCO', miss: 'c1ccccc1' },
+  { type: '2', query: 'COC |LN:1:1.3|', match: 'COOC', miss: 'COOOOC' },
+  { type: '3', query: 'Cc1n[nH]c(F)c1', match: 'Cc1[nH]nc(F)c1', miss: 'Cc1n[nH]c(Cl)c1' },
+  { type: '4', query: 'COC1=NNC=C1 |LN:1:1.3|', match: 'COOc1[nH]ncc1', miss: 'COOOOc1[nH]ncc1' },
+]
+
 describe(`rdkit`, () => {
   let pg: PGlite
   let dataDirArchive: File | Blob
@@ -96,6 +104,46 @@ describe(`rdkit`, () => {
     )
     const indexScan = await pg.query<{ id: number }>(query)
     expect(indexScan.rows).toEqual(seqScan.rows)
+  })
+
+  it.each(extendedQueries)('serializes and matches extended query type $type', async ({ type, query, match, miss }) => {
+    const { rows } = await pg.query<{ serialized: string; matches: boolean; misses: boolean; bytes: number }>(`
+      SELECT q::text AS serialized, $2::mol @> q AS matches, $3::mol @> q AS misses,
+             octet_length(xqmol_send(q)) AS bytes
+      FROM (SELECT mol_to_xqmol($1::mol) AS q) queries;
+    `, [query, match, miss])
+    expect(JSON.parse(rows[0].serialized).xqm_type).toBe(type)
+    expect(rows[0].matches).toBe(true)
+    expect(rows[0].misses).toBe(false)
+    expect(rows[0].bytes).toBeGreaterThan(0)
+
+    // Text input must reconstruct the same query and retain its matching behavior.
+    const roundTrip = await pg.query<{ matches: boolean; misses: boolean }>(`
+      SELECT $2::mol @> $1::xqmol AS matches, $3::mol @> $1::xqmol AS misses;
+    `, [rows[0].serialized, match, miss])
+    expect(roundTrip.rows[0]).toEqual({ matches: true, misses: false })
+  })
+
+  it('preserves extended queries after reloading the database', async () => {
+    await pg.exec('CREATE TABLE saved_queries (kind text, q xqmol, target mol, nonmatch mol);')
+    for (const { type, query, match, miss } of extendedQueries) {
+      await pg.query(`
+        INSERT INTO saved_queries VALUES ($1, mol_to_xqmol($2::mol), $3::mol, $4::mol);
+      `, [type, query, match, miss])
+    }
+    const archive = await pg.dumpDataDir('gzip')
+    await pg.close()
+    pg = await PGlite.create({ extensions: { rdkit }, loadDataDir: archive })
+    const { rows } = await pg.query<{ kind: string; serialized: string; matches: boolean; misses: boolean }>(`
+      SELECT kind, q::text AS serialized, target @> q AS matches, nonmatch @> q AS misses
+      FROM saved_queries ORDER BY kind;
+    `)
+    expect(rows).toHaveLength(extendedQueries.length)
+    for (const row of rows) {
+      expect(JSON.parse(row.serialized).xqm_type).toBe(row.kind)
+      expect(row.matches).toBe(true)
+      expect(row.misses).toBe(false)
+    }
   })
 
   it('fingerprint similarity', async () => {

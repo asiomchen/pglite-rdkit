@@ -5,7 +5,8 @@ pglite-rdkit is distributed under the following licenses:
    the RDKit PostgreSQL cartridge compiled to WebAssembly) are licensed under
    the BSD 3-Clause License (the RDKit `license.txt` file), see Part 1.
 
-2. The extension bundle also includes code from Boost header-only libraries,
+2. The extension bundle also includes code from Boost headers and the static
+   Boost.Serialization and Boost.Iostreams libraries,
    licensed under the Boost Software License, Version 1.0, see Part 2, and
    the LLVM libc++/libc++abi/libunwind C++ runtime, licensed under the Apache License,
    Version 2.0 with LLVM Exceptions, see Part 3.
@@ -57,7 +58,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ================================================================================
 Part 2: Boost Software License, Version 1.0
-        (applies to Boost header-only code compiled into `dist/rdkit.tar.gz`)
+        (applies to Boost code compiled into `dist/rdkit.tar.gz`)
 ================================================================================
 
 Boost Software License - Version 1.0 - August 17th, 2003
