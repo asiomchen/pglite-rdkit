@@ -233,6 +233,9 @@ for 2FA), `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets.
 
 ## License
 
-The wrapper and the RDKit cartridge are BSD-3-Clause. The bundle also includes Boost
+The wrapper, the RDKit cartridge, RingDecomposerLib and Novartis-contributed RDKit code are
+BSD-3-Clause. The bundle also includes Boost
 header-only code (BSL-1.0), the LLVM libc++/libc++abi/libunwind runtime (Apache-2.0 WITH
 LLVM-exception) and the InChI library (MIT). See [LICENSE](https://github.com/asiomchen/pglite-rdkit/blob/main/package/LICENSE).
+
+The extension archive also includes the complete license file at `share/doc/rdkit/LICENSE`.

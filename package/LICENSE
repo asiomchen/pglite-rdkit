@@ -13,6 +13,10 @@ pglite-rdkit is distributed under the following licenses:
 3. The extension bundle also includes the InChI library (used by mol_inchi
    and mol_inchikey), licensed under the MIT License, see Part 4.
 
+4. RingDecomposerLib and Novartis-contributed RDKit code (including
+   ChemReactions and the Mol2 parser) have additional BSD 3-Clause copyright
+   notices and terms, reproduced in Parts 5 and 6.
+
 SPDX-License-Identifier: BSD-3-Clause AND BSL-1.0 AND Apache-2.0 WITH LLVM-exception AND MIT
 
 ================================================================================
@@ -307,3 +311,98 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+================================================================================
+Part 5: RingDecomposerLib BSD 3-Clause License
+        (upstream: External/RingFamilies/RingDecomposerLib/LICENSE)
+================================================================================
+
+Copyright (c) 2016
+University of Hamburg, ZBH - Center for Bioinformatics
+Niek Andresen, Florian Flachsenberg, Matthias Rarey
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+may be used to endorse or promote products derived from this software without
+specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+================================================================================
+Part 6: Novartis BSD 3-Clause License
+        (upstream: Code/GraphMol/ChemReactions/license.txt, the ChemReactions
+        source headers, and Code/GraphMol/FileParsers/Mol2FileParser.cpp)
+================================================================================
+
+Copyright (c) 2007, Novartis Institutes for BioMedical Research Inc.
+
+Additional copyright notices from the source files:
+
+Copyright (c) 2007-2021, Novartis Institutes for BioMedical Research Inc.
+and other RDKit contributors
+Copyright (c) 2007-2024, Novartis Institutes for BioMedical Research Inc.
+and other RDKit contributors
+Copyright (c) 2007-2026, Novartis Institutes for BioMedical Research Inc.
+and other RDKit contributors
+Copyright (c) 2008-2023, Novartis Institutes for BioMedical Research Inc.
+and other RDKit contributors
+Copyright (c) 2010, Novartis Institutes for BioMedical Research Inc.
+Copyright (c) 2010-2024, Novartis Institutes for BioMedical Research Inc.
+and other RDKit contributors
+Copyright (c) 2014, Novartis Institutes for BioMedical Research Inc.
+Copyright (c) 2014-2021, Novartis Institutes for BioMedical Research Inc.
+and other RDKit contributors
+Copyright (c) 2014-2023, Novartis Institutes for BioMedical Research Inc.
+and other RDKit contributors
+Copyright (c) 2014-2024, Novartis Institutes for BioMedical Research Inc.
+and other RDKit contributors
+Copyright (c) 2015, Novartis Institutes for BioMedical Research Inc.
+Copyright (c) 2016, Novartis Institutes for BioMedical Research Inc.
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+    * Neither the name of Novartis Institutes for BioMedical Research Inc.
+      nor the names of its contributors may be used to endorse or promote
+      products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

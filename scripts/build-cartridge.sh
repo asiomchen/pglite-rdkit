@@ -39,6 +39,10 @@ rm -rf "$STAGE_DIR"
 cmake --install "$BUILD_DIR"
 emstrip --strip-debug "$STAGE_DIR/lib/postgresql/rdkit.so"
 
+# Keep the standalone extension archive self-contained; npm also ships package/LICENSE.
+mkdir -p "$STAGE_DIR/share/doc/rdkit"
+cp "$ROOT/package/LICENSE" "$STAGE_DIR/share/doc/rdkit/LICENSE"
+
 mkdir -p "$ROOT/dist"
 (cd "$STAGE_DIR" && tar -czf "$TARBALL" $(find . -type f | sed 's|^\./||' | sort))
 ls -l "$STAGE_DIR/lib/postgresql/rdkit.so" "$TARBALL"
