@@ -20,15 +20,3 @@ export function formatValue(value: unknown): string {
 
 /** "1 row", "1,000,000 rows" */
 export const count = (n: number, noun: string) => `${n.toLocaleString()} ${noun}${n === 1 ? '' : 's'}`
-
-/** Base64 for share links, safe for non-ASCII SQL. */
-export const encodeShare = (sql: string) =>
-  btoa(String.fromCharCode(...new TextEncoder().encode(sql)))
-
-export function decodeShare(encoded: string): string | undefined {
-  try {
-    return new TextDecoder().decode(Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0)))
-  } catch {
-    return undefined
-  }
-}
