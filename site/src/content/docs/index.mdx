@@ -92,8 +92,10 @@ Only `@electric-sql/pglite` 0.5.x (`>=0.5.0 <0.6.0`, PostgreSQL 18) is supported
 release is tested in CI.
 :::
 
-Invalid SMILES raises a normal Postgres error, and the database stays usable. For every function
-and operator, see the [RDKit cartridge documentation](https://www.rdkit.org/docs/Cartridge.html).
+For every function and operator, see the [RDKit cartridge documentation](https://www.rdkit.org/docs/Cartridge.html).
+
+For PGlite itself, such as storing the database in IndexedDB or OPFS, running it in a Web Worker,
+or live queries, see the [PGlite documentation](https://pglite.dev/docs/).
 
 ## Differences from Server RDKit
 
