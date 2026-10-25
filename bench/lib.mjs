@@ -19,7 +19,8 @@ export function parseArgs(argv, defaults) {
     const [, key, inline] = m
     if (!(key in defaults)) throw new Error(`unknown option --${key}`)
     const type = typeof defaults[key]
-    const value = inline ?? (type === 'boolean' ? 'true' : argv[++i])
+    // a boolean flag takes a following true/false (`--queries false`), or is true on its own
+    const value = inline ?? (type !== 'boolean' ? argv[++i] : /^(true|false)$/.test(argv[i + 1]) ? argv[++i] : 'true')
     args[key] = type === 'boolean' ? value !== 'false' : type === 'number' ? Number(value) : value
   }
   return args
@@ -96,6 +97,22 @@ export function rssMB(pids) {
     )
   } catch {
     return {} // exited
+  }
+}
+
+/**
+ * Physical footprint of a process in MB (macOS only, else null): the dirty memory it is charged
+ * for, which Activity Monitor shows and the OS kills on. Unlike RSS it leaves out clean, shared
+ * pages. `peak` is the kernel's exact high watermark, which sampling from outside can miss.
+ */
+export function footprintMB(pid) {
+  if (process.platform !== 'darwin') return null
+  try {
+    const out = execFileSync('footprint', ['--noCategories', '-f', 'bytes', String(pid)], { encoding: 'utf8' })
+    const get = (key) => Math.round(Number(new RegExp(`${key}: (\\d+) B`).exec(out)[1]) / 2 ** 20)
+    return { current: get('phys_footprint'), peak: get('phys_footprint_peak') }
+  } catch {
+    return null
   }
 }
 

@@ -89,6 +89,10 @@ Memory:
 
 - **Peak process memory**: the browser tab's renderer process (Chromium) or the Node process,
   sampled from outside every 250 ms. This is the number that ends in an out-of-memory tab crash.
+- **Peak footprint** (Node on macOS): the kernel's exact peak of the process's physical footprint,
+  read by the process itself with `footprint` before it exits, plus `footprintMB` at every step.
+  It is the figure Activity Monitor shows, without the clean, shared pages RSS includes. It still
+  counts memory that macOS malloc keeps cached after it is freed.
 - **wasm heap**: PGlite's WebAssembly memory, which can't grow past 2 GB. With in-memory storage
   the database files live outside it, in JS `ArrayBuffer`s.
 

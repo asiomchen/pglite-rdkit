@@ -28,6 +28,7 @@ export function summarize(files) {
     const mb = r.peakTabRssMB ?? r.peakRssMB ?? r.peakContainerMB
     return mb && `${mb} MB${r.peakContainerMB ? ' (container)' : ''}`
   })
+  row('peak footprint (macOS)', (r) => r.peakFootprintMB && `${r.peakFootprintMB} MB`)
   row('wasm heap at end', (r) => r.memory?.end?.wasmHeapMB && `${r.memory.end.wasmHeapMB} MB`)
   row('database size', (r) => r.sizesMB && `${r.sizesMB.db} MB`)
   row('SMILES that failed to parse', (r) => r.parseFailures)
@@ -43,6 +44,7 @@ export function summarize(files) {
     const mb = r.reopen?.peakTabRssMB ?? r.reopen?.peakRssMB
     return mb && `${mb} MB`
   })
+  row('reopen: peak footprint (macOS)', (r) => r.reopen?.peakFootprintMB && `${r.reopen.peakFootprintMB} MB`)
 
   const header = results.map((r, i) => {
     const e = r.env
