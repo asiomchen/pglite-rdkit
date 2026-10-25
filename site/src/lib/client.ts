@@ -8,6 +8,19 @@ import { SEED_SQL } from 'pglite-rdkit/examples'
 export type DbKind = 'playground' | 'repl'
 
 const instances = new Map<DbKind, Promise<PGliteWorker>>()
+/** every worker this page started, so pagehide can stop them synchronously */
+const live = new Set<PGliteWorker>()
+
+/**
+ * Terminates every database worker of this page. Called on pagehide: a page kept in the
+ * back/forward cache would otherwise keep its worker and its ~500 MB of wasm memory alive.
+ * close() reaches worker.terminate() without awaiting, so this is effectively synchronous.
+ */
+export function closeAll() {
+  instances.clear()
+  for (const pg of live) void pg.close()
+  live.clear()
+}
 
 export function getDb(kind: DbKind): Promise<PGliteWorker> {
   let db = instances.get(kind)
@@ -28,6 +41,7 @@ async function open(kind: DbKind): Promise<PGliteWorker> {
       : // a memory database must not be shared through leader election with other tabs
         { dataDir: 'memory://', id: `pglite-rdkit-playground-${crypto.randomUUID()}` },
   )
+  live.add(pg)
   await pg.waitReady
   await seed(pg)
   return pg
@@ -49,7 +63,7 @@ async function seed(pg: PGliteWorker) {
 export async function restartDb(kind: DbKind): Promise<PGliteWorker> {
   const old = instances.get(kind)
   instances.delete(kind)
-  await old?.then((pg) => pg.close()).catch(() => {})
+  await old?.then((pg) => (live.delete(pg), pg.close())).catch(() => {})
   return getDb(kind)
 }
 
