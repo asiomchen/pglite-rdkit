@@ -30,9 +30,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # the version comes from packageManager in site/package.json
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: site/package.json
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: pnpm
+          cache-dependency-path: site/pnpm-lock.yaml
 
       # Right after a publish or approval the registry can take a few minutes to serve the new version
       - name: Resolve pglite-rdkit version
@@ -56,13 +63,14 @@ jobs:
 
       - name: Install site with pglite-rdkit from npm
         working-directory: site
+        # pnpm-lock.yaml pins everything else; only pglite-rdkit moves from file:../package to npm
         run: |
-          npm pkg set "dependencies.pglite-rdkit=${{ steps.version.outputs.version }}"
-          npm install --no-audit --no-fund
+          pnpm install --frozen-lockfile
+          pnpm add --save-exact "pglite-rdkit@${{ steps.version.outputs.version }}"
 
       - name: Build site
         working-directory: site
-        run: npm run build
+        run: pnpm run build
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3

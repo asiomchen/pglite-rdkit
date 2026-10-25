@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import embed from 'vega-embed'
+import { expressionInterpreter } from 'vega-interpreter'
 import type { TopLevelSpec } from 'vega-lite'
 import { bootstrapCI, randomLCG, setRandom } from 'vega-statistics'
 import data from '../data/benchmarks.json'
@@ -252,6 +253,10 @@ function Chart({ title, rows, unit, format }: { title: string; rows: Row[]; unit
     embed(el.current, spec(title, rows, unit), {
       renderer: 'svg',
       actions: false,
+      // the site's CSP has no 'unsafe-eval', so Vega interprets expressions instead of compiling
+      // them with new Function
+      ast: true,
+      expr: expressionInterpreter,
       tooltip: { theme: 'custom', formatTooltip: tooltipFormatter(format) as never },
     }).then((result) => {
       if (cancelled) result.finalize()
