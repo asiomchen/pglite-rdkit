@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { MAX_TEXT, count, formatValue, isSvg, svgDataUrl } from '../lib/format'
 import type { RunError, RunOutcome, StatementResult } from '../lib/run'
 
@@ -65,6 +65,36 @@ function Grid({ columns, rows }: { columns: string[]; rows: unknown[][] }) {
   )
 }
 
+/**
+ * Rows with a drawing as cards that wrap across the width: the structure on top, the other
+ * columns under it. A table row per molecule fits one or two drawings on screen; this fits a few
+ * rows of them.
+ */
+function Cards({ columns, rows, drawn }: { columns: string[]; rows: unknown[][]; drawn: boolean[] }) {
+  return (
+    <ul className="rdkit-cards">
+      {rows.map((row, r) => (
+        <li key={r} className="rdkit-card">
+          {row.map((v, c) => drawn[c] && <Cell key={c} value={v} label={rowLabel(columns, row, r)} />)}
+          <dl>
+            {row.map(
+              (v, c) =>
+                !drawn[c] && (
+                  <Fragment key={c}>
+                    <dt>{columns[c]}</dt>
+                    <dd>
+                      <Cell value={v} label={rowLabel(columns, row, r)} />
+                    </dd>
+                  </Fragment>
+                ),
+            )}
+          </dl>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 /** psql's expanded mode (\x): one name/value block per row, for wide rows */
 function Records({ columns, rows }: { columns: string[]; rows: unknown[][] }) {
   return (
@@ -92,10 +122,12 @@ interface StatementProps {
   result: StatementResult
   label?: string
   expanded?: boolean
+  cards?: boolean
 }
 
-function Statement({ result, label, expanded }: StatementProps) {
+function Statement({ result, label, expanded, cards }: StatementProps) {
   const [limit, setLimit] = useState(PAGE)
+  const [view, setView] = useState<'cards' | 'table'>('cards')
   if (result.columns.length === 0) {
     return (
       <div className="rdkit-result">
@@ -108,14 +140,32 @@ function Statement({ result, label, expanded }: StatementProps) {
   }
   const { columns, rows, rowCount } = result
   const shown = rows.slice(0, limit)
+  // columns holding RDKit drawings; with any, cards are offered (and the default)
+  const drawn = columns.map((_, c) => rows.some((row) => isSvg(row[c])))
+  const canCards = cards && !expanded && drawn.some(Boolean)
+  const asCards = canCards && view === 'cards'
   return (
     <div className="rdkit-result">
       {label && <div className="rdkit-hint">{label}</div>}
+      {/* above the results, so it's in view without scrolling through them */}
+      {canCards && (
+        <div className="rdkit-view" role="group" aria-label="Show results as">
+          {(['cards', 'table'] as const).map((v) => (
+            <button key={v} type="button" aria-pressed={view === v} onClick={() => setView(v)}>
+              {v === 'cards' ? 'Cards' : 'Table'}
+            </button>
+          ))}
+        </div>
+      )}
       {/* an empty grid still shows the column names; psql's \x prints nothing but the count */}
       {(!expanded || rows.length > 0) && (
-        <div className="rdkit-table-wrap">
-          {expanded ? <Records columns={columns} rows={shown} /> : <Grid columns={columns} rows={shown} />}
-        </div>
+        asCards ? (
+          <Cards columns={columns} rows={shown} drawn={drawn} />
+        ) : (
+          <div className="rdkit-table-wrap">
+            {expanded ? <Records columns={columns} rows={shown} /> : <Grid columns={columns} rows={shown} />}
+          </div>
+        )
       )}
       <div className="rdkit-hint">
         {count(rowCount ?? rows.length, 'row')}
@@ -181,10 +231,13 @@ export default function ResultTable({
   outcome,
   sql,
   expanded = false,
+  cards = false,
 }: {
   outcome: RunOutcome
   sql?: string
   expanded?: boolean
+  /** offer (and default to) cards for results with drawings; the REPL keeps psql's table */
+  cards?: boolean
 }) {
   if (!outcome.ok) {
     return (
@@ -200,7 +253,7 @@ export default function ResultTable({
       <Notices notices={outcome.notices} />
       {outcome.text && <pre className="rdkit-text">{outcome.text}</pre>}
       {outcome.results.map((r, i) => (
-        <Statement key={i} result={r} label={many ? `Statement ${i + 1}` : undefined} expanded={expanded} />
+        <Statement key={i} result={r} label={many ? `Statement ${i + 1}` : undefined} expanded={expanded} cards={cards} />
       ))}
     </>
   )

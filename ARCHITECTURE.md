@@ -12,7 +12,7 @@ PGlite. For usage and build commands, see [README.md](README.md).
 | PostgreSQL | 18.6 (PGlite, wasm32, `SIZEOF_DATUM=4`, single-threaded) |
 | Supported PGlite | `>=0.5.0 <0.6.0` (peer dependency), each release tested |
 | Reference PGlite | `0.5.10`: headers from `postgres-pglite` `ff7e8412`, image `electricsql/pglite-builder:6.0.12-1` |
-| Boost | 1.87.0, headers only |
+| Boost | 1.87.0, headers plus static Serialization and Iostreams libraries |
 | InChI | 1.07.3 (MIT), built in; Avalon optional (`RDKIT_FEATURES=avalon`) |
 | Exceptions | native wasm EH (`-fwasm-exceptions`, legacy encoding) |
 
@@ -59,7 +59,7 @@ flowchart LR
 | `UPSTREAM.lock` | Pinned inputs: reference PGlite version, its `postgres-pglite` commit and builder image, RDKit tag and commit, Boost URL |
 | `scripts/fetch-upstream.sh` | Shallow checkout of the pinned commits into `upstream/`, plus the Boost source tarball and the md5-checked InChI zip |
 | `scripts/build-pg-headers.sh` | Configures `postgres-pglite` like the release build and installs only the server headers into `build/pg/` |
-| `scripts/build-rdkit-libs.sh` | RDKit static libraries into `build/rdkit-install/`, and a headers-only `BoostConfig.cmake` into `build/boost-cmake/` |
+| `scripts/build-rdkit-libs.sh` | RDKit static libraries into `build/rdkit-install/`, Boost archives into `build/boost-stage/`, and `BoostConfig.cmake` into `build/boost-cmake/` |
 | `cartridge/CMakeLists.txt` | Wrapper project: cartridge sources + shims → `rdkit.so`, plus SQL generation |
 | `cartridge/pglite_shims.c` | Postgres symbols missing from some releases' `pglite.wasm` |
 | `cartridge/libc_shims.c` | libc symbols missing from some releases (kept free of Postgres headers, whose `port.h` renames the printf family) |
@@ -92,7 +92,7 @@ flowchart TD
 |---|---|---|---|---|
 | `fetch-upstream.sh` | `UPSTREAM.lock` | `upstream/{postgres-pglite,rdkit,boost}` | host (git, curl) | network-bound; cached in CI by the hash of `UPSTREAM.lock` |
 | `build-pg-headers.sh` | `upstream/postgres-pglite` | `build/pg/include/postgresql/server` | builder image (starts docker itself) | together with the cartridge stage, about 40 s of the total |
-| `build-rdkit-libs.sh` | `upstream/rdkit`, `upstream/boost`, zlib from the image (`/install/libs`) | 61 archives (38 MB) in `build/rdkit-install` | builder image (`docker.sh`) | ~2 min 16 s on 10 cores |
+| `build-rdkit-libs.sh` | `upstream/rdkit`, `upstream/boost`, zlib from the image (`/install/libs`) | RDKit archives in `build/rdkit-install`, Boost archives in `build/boost-stage` | builder image (`docker.sh`) | depends on cached Boost and RDKit objects |
 | `build-cartridge.sh` | the two outputs above, `cartridge/` | `build/cartridge-stage`, `dist/rdkit.tar.gz` | builder image (`docker.sh`) | see above |
 | `check-imports.mjs` | `rdkit.so`, npm `pglite.wasm`/`pglite.js` | pass/fail | host (Node) | seconds |
 | `npm run build` (in `package/`) | `package/release/rdkit.tar.gz` | `package/dist/` | host | seconds |
@@ -125,17 +125,21 @@ and installs the `dev` component: headers, `lib*.a` and `lib/cmake/rdkit`.
 - **Flags:** `-m32 -fpic -fwasm-exceptions -sWASM_BIGINT -O2` (`-g` and Debug with `DEBUG=true`).
   The release `PGLITE_CFLAGS` aren't used, because their `-Dexit=pgl_exit`-style macros break the
   C++ standard headers.
-- **Boost:** headers only. No `b2` build is needed. The script writes a small `BoostConfig.cmake`
-  into `build/boost-cmake` that points `Boost::boost`/`Boost::headers` at the extracted source tree.
+- **Boost:** `b2` builds static Serialization and Iostreams libraries with the same wasm exception
+  flags as RDKit. Compression backends are disabled. The generated `BoostConfig.cmake` exposes
+  the headers and both archives, including when the cartridge loads RDKit's installed targets.
+  RDKit requires both components when serialization is enabled, even with its compressed I/O off.
+- **Extended queries:** Boost serialization is enabled so `xqmol` can store and reload molecule
+  bundles, tautomer queries and bundles of tautomer queries, as well as single molecules.
 - **Minimal feature set.** Off: wrappers (Python, Boost.Python, nanobind), C++ tests, thread-safe
-  SSS, POPCNT, Boost serialization and iostreams, URF, FreeType, Cairo, Avalon, Coordgen,
+  SSS, POPCNT, RDKit compressed I/O, FreeType, Cairo, Avalon, Coordgen,
   MAEParser, MolInterchange, ChemDraw, PubChemShape, Descriptors3D and SLN.
 - **InChI is on.** RDKit's CMake would download the InChI source at configure time;
   `fetch-upstream.sh` downloads it once instead (md5 pinned in `UPSTREAM.lock`, the same one
   RDKit's `FindInchi.cmake` pins) and the build passes it as `-DINCHI_URL=file://…`, so no network
   is needed at build time. RDKit still unpacks it under `upstream/rdkit/External/INCHI-API/`,
   which is gitignored there.
-- **Result:** 61 archives, 38 MB. All 361 objects carry the `exception-handling` wasm feature.
+- **Result:** static wasm archives for RDKit and Boost, compiled with native wasm exceptions.
 
 ### Cartridge side module
 
@@ -224,8 +228,8 @@ The second row is why loading alone proves little. On 0.5.9, before the ctype sh
 `check-imports.mjs` reads `WebAssembly.Module.imports(rdkit.so)` and classifies each import as
 provided by the loader, by `rdkit.so` itself, by the main module's exports, by the JS library, or
 as `invoke_*`. It fails if anything is missing, or if a JS-provided function calls `abort()`.
-Against 0.5.0, 0.5.10 and 0.5.11 alike, the current build has 6,209 imports: 5 from the loader,
-6,014 from the module itself, 190 from the main module's exports, 0 from the JS library, and 0
+Against 0.5.0, 0.5.10 and 0.5.11 alike, the current build has 6,466 imports: 5 from the loader,
+6,271 from the module itself, 190 from the main module's exports, 0 from the JS library, and 0
 `invoke_*`.
 
 ### Shims
@@ -272,9 +276,9 @@ legacy encoding (`try`/`catch`/`delegate`/`rethrow`; `WASM_LEGACY_EXCEPTIONS` is
 - Runtime requirement: engines with legacy wasm exceptions, which means Node 17+, Deno, Bun and
   current browsers.
 
-**Toolchain coupling.** `rdkit.so` defines 9,364 exported symbols. Some of them are also exported
+**Toolchain coupling.** `rdkit.so` defines 10,875 exported symbols. Some of them are also exported
 by `pglite.wasm`: 157 on 0.5.0–0.5.9 and 2,271 on 0.5.10, mostly libc++ template instantiations.
-Of those, the ones referenced through the GOT (107 and 1,278) resolve to the main module's copy.
+Of those, the ones referenced through the GOT (107 and 1,279) resolve to the main module's copy.
 This works with releases built by both emsdk 3.1.74 and 6.x (the matrix verifies it), but it's the
 part most likely to break when either side changes toolchain.
 
@@ -307,7 +311,7 @@ rows on 0.5.0, which is why imports are checked rather than inferred from passin
 
 ## Testing and CI
 
-**Unit tests** (`package/tests/rdkit.test.ts`, vitest, 11 tests). One data dir is created and
+**Unit tests** (`package/tests/rdkit.test.ts`, vitest, 16 tests). One data dir is created and
 reused through `dumpDataDir`, and each test runs `CREATE EXTENSION IF NOT EXISTS rdkit`.
 
 | Test | Covers |
@@ -318,6 +322,8 @@ reused through `dumpDataDir`, and each test runs `CREATE EXTENSION IF NOT EXISTS
 | invalid input | `'C1CCxyz'::mol` → `could not create molecule`, then the backend is still usable (exception → `ereport`) |
 | descriptors | `mol_amw`, `mol_logp`, … |
 | substructure | `@>` with a seq scan and a forced GiST index scan give the same rows |
+| extended queries (4 cases) | all four `xqmol` representations, positive/negative matches, text round trips and binary output |
+| extended-query persistence | stored queries retain their type and matching behavior after `dumpDataDir` and reload |
 | similarity | `tanimoto_sml(morganbv_fp…)`, `%` with a GiST index and `rdkit.tanimoto_threshold` |
 | InChI | aspirin InChI and InChIKey, L-alanine stereo layer |
 | InChI options and edge cases | `/FixedH`; `NULL` for a dummy atom and for an empty molecule; backend still usable |
@@ -350,10 +356,20 @@ day without any change to this repo.
 
 | Artifact | This repo (native wasm EH) | Monorepo variant (JS EH) |
 |---|---|---|
-| `rdkit.so` (stripped) | 8,000,919 B (8.0 MB); 6.87 MB without InChI | 8,398,908 B (8.4 MB), no InChI |
-| `rdkit.tar.gz` | 2,149,395 B (2.15 MB); 1.71 MB without InChI | 1,989,941 B (1.99 MB), no InChI |
-| `CREATE EXTENSION` (Node, 0.5.10, median of 5) | ~152 ms; ~126 ms without InChI | — |
+| `rdkit.so` (stripped) | 8,121,959 B (8.12 MB) | 8,398,908 B (8.4 MB), no InChI |
+| `rdkit.tar.gz` | 2,187,641 B (2.19 MB) | 1,989,941 B (1.99 MB), no InChI |
+| `CREATE EXTENSION` (Node, 0.5.10, median of 5, before Boost serialization) | ~152 ms; ~126 ms without InChI | — |
 | Change to `pglite.wasm` | none | +95.6 KB for every PGlite user |
+
+Enabling Boost serialization increased the stripped module from 8,000,919 B by 121,040 B
+(1.51%), and the archive from 2,156,623 B by 31,018 B (1.44%). Both archive measurements
+include the license notices. The external import set remained unchanged; no additional shims
+were needed. All 28 package tests passed on each cached PGlite release from 0.5.0 to 0.5.11.
+All 35 Boost.Serialization and 2 Boost.Iostreams object files declare native wasm exception support.
+
+Separate upstream limitation: binary protocol parameters sent to `xqmol_recv` fail even for a
+single-molecule query on the pre-serialization build. This change validates text round trips,
+binary output and stored-data reloads; it does not fix that receiver.
 
 ## Design decisions and trade-offs
 
@@ -369,7 +385,7 @@ day without any change to this repo.
 | Two CMake stages | upstream cartridge CMake, or `add_subdirectory(rdkit)` | `pg_config`/`pg_regress` can't run; RDKit must be the top-level project |
 | Bundle `libc++`/`libc++abi`/`libunwind` | use the main module's | the main module's copy has no wasm-EH runtime, and its exports vary by release |
 | Minimal RDKit feature set | full build | size and fewer native dependencies; only what the cartridge SQL needs |
-| Headers-only Boost via generated `BoostConfig.cmake` | `b2` build | serialization/iostreams are off, so no compiled Boost libraries are needed |
+| Static Boost.Serialization and Boost.Iostreams via `b2` and generated `BoostConfig.cmake` | headers only | extended-query storage requires serialization; the archives use the side module's wasm exception ABI |
 
 ## Ecosystem context
 
@@ -391,7 +407,8 @@ day without any change to this repo.
   "Avalon support not enabled". The `RDKIT_FEATURES=avalon` variant builds and computes
   fingerprints, but needs `fmemopen`, `tmpfile` and `rewind` (Avalon's molfile I/O, unreachable from
   the cartridge), which no release exports, so it fails `check-imports.mjs`. No Coordgen (depiction
-  uses RDKit's own depictor). Without FreeType, `MolDraw2D` draws text as paths.
+  uses RDKit's own depictor). Without FreeType, `MolDraw2D` emits SVG text as `<text>` elements that
+  use browser fonts; molecular bonds can still be drawn as paths.
 - **The export list isn't a stable API.** A release may drop a symbol. The matrix detects this
   within a day, but published versions of this package can't be fixed retroactively.
 - **Toolchain coupling.** libc++ symbols shared with `pglite.wasm` (see

@@ -36,18 +36,33 @@ export interface RawResult {
 const encoder = new TextEncoder()
 const decoder = new TextDecoder()
 
-function queryMessage(sql: string): Uint8Array {
-  const text = encoder.encode(sql)
-  const msg = new Uint8Array(text.length + 6)
-  const view = new DataView(msg.buffer)
-  msg[0] = 0x51 // 'Q'
-  view.setInt32(1, text.length + 5)
-  msg.set(text, 5)
+function stringMessage(type: number, text: string): Uint8Array {
+  const bytes = encoder.encode(text)
+  const msg = new Uint8Array(bytes.length + 6)
+  msg[0] = type
+  new DataView(msg.buffer).setInt32(1, bytes.length + 5)
+  msg.set(bytes, 5)
   return msg
 }
 
-// 'S' with an empty body
-const SYNC = new Uint8Array([0x53, 0, 0, 0, 4])
+function queryMessage(sql: string): Uint8Array {
+  const query = stringMessage(0x51, sql) // Q: Query
+  const msg = new Uint8Array(query.length + COPY_FAIL.length)
+  msg.set(query)
+  msg.set(COPY_FAIL, query.length)
+  return msg
+}
+
+// PGlite runs synchronously until the supplied protocol input is exhausted. Queue a
+// CopyFail with every query so COPY FROM STDIN cannot run out of input and kill the
+// session. PostgreSQL ignores it outside copy-in mode; otherwise it aborts COPY and
+// skips the remaining statements, returning the usual error and transaction status.
+// https://www.postgresql.org/docs/18/protocol-flow.html#PROTOCOL-COPY
+const COPY_FAIL = stringMessage(
+  0x66, // f: CopyFail
+  'COPY FROM STDIN is not supported in the browser REPL. Use INSERT ... VALUES to add rows.',
+)
+const SYNC = new Uint8Array([0x53, 0, 0, 0, 4]) // S: Sync
 
 /** Runs `sql` with the simple query protocol, like psql does, and decodes the reply. */
 export async function simpleQuery(pg: PGliteWorker, sql: string, maxRows: number): Promise<RawResult> {

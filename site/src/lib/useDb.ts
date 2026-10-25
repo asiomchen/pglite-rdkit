@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { PGliteWorker } from '@electric-sql/pglite/worker'
-import { getDb, rdkitVersion, restartDb, type DbKind } from './client'
+import { closeAll, getDb, rdkitVersion, restartDb, type DbKind } from './client'
 import { loadSchema, type SchemaInfo } from './schema'
 import { track } from './analytics'
 
@@ -21,6 +21,24 @@ export function useDb(kind: DbKind, enabled = true) {
   const [pg, setPg] = useState<PGliteWorker>()
   const [status, setStatus] = useState<DbStatus>({ state: 'loading' })
   const [schema, setSchema] = useState<SchemaInfo>({ tables: [], rdkitFunctions: [] })
+  // bumped when the page comes back from the back/forward cache, to reopen the database
+  const [generation, setGeneration] = useState(0)
+
+  useEffect(() => {
+    const hide = () => closeAll()
+    const show = (e: PageTransitionEvent) => {
+      if (!e.persisted) return
+      setPg(undefined)
+      setStatus({ state: 'loading' })
+      setGeneration((g) => g + 1)
+    }
+    window.addEventListener('pagehide', hide)
+    window.addEventListener('pageshow', show)
+    return () => {
+      window.removeEventListener('pagehide', hide)
+      window.removeEventListener('pageshow', show)
+    }
+  }, [])
 
   useEffect(() => {
     if (!enabled) return
@@ -43,7 +61,7 @@ export function useDb(kind: DbKind, enabled = true) {
     return () => {
       cancelled = true
     }
-  }, [kind, enabled])
+  }, [kind, enabled, generation])
 
   const refreshSchema = useCallback(async () => {
     if (pg) setSchema(await loadSchema(pg))

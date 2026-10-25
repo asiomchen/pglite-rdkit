@@ -5,9 +5,9 @@ name: Release
 # nothing is public until a maintainer approves it with 2FA) and creates a draft GitHub release
 # with the same tarball. package/package.json keeps 0.0.0: the tag is the only place the version
 # is written down. To finish a release:
-#   1. npm stage list pglite-rdkit, then npm stage approve <stage-id>  (prompts for 2FA)
+#   1. npm stage approve <stage-id>  (prompts for 2FA; the id is in the job summary)
 #   2. publish the draft GitHub release; for a stable version that triggers docs.yml
-# Staging needs the package to exist on npm, so the very first version is published by hand.
+# Test with a prerelease tag first: it goes to the `next` dist-tag and doesn't deploy the docs.
 on:
   push:
     tags:

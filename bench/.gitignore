@@ -1,0 +1,5 @@
+# downloaded by data.mjs; MolPILE isn't redistributed (its sources have separate licenses)
+/data/
+
+# vite build output used by browser.mjs
+/dist/

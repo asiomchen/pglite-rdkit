@@ -4,18 +4,13 @@ import SqlEditor from './SqlEditor'
 import ResultTable, { summarizeOutcome } from './ResultTable'
 import { track } from '../lib/analytics'
 import { resetDb } from '../lib/client'
-import { decodeShare, encodeShare } from '../lib/format'
 import { changesSchema, runSql, type RunOutcome } from '../lib/run'
 import { toNamespace } from '../lib/schema'
 import { statusText, useDb } from '../lib/useDb'
 
-/** Reads the query to start with from #<example-id> or #sql=<base64>. */
-function initialQuery(): { id?: string; sql: string } {
-  const hash = decodeURIComponent(location.hash.slice(1))
-  if (hash.startsWith('sql=')) {
-    const sql = decodeShare(hash.slice(4))
-    if (sql !== undefined) return { sql }
-  }
+/** Reads a built-in example from #<example-id>; other fragments use the default. */
+function initialQuery(): { id: string; sql: string } {
+  const hash = location.hash.slice(1)
   const example = EXAMPLES.find((e) => e.id === hash) ?? EXAMPLES[0]
   return { id: example.id, sql: example.sql }
 }
@@ -23,15 +18,14 @@ function initialQuery(): { id?: string; sql: string } {
 export default function Playground() {
   const { pg, status, schema, refreshSchema } = useDb('playground')
   const [start] = useState(initialQuery)
-  const [activeId, setActiveId] = useState(start.id)
+  const [activeId, setActiveId] = useState<string | undefined>(start.id)
   const [sql, setSql] = useState(start.sql)
   const [outcome, setOutcome] = useState<{ result: RunOutcome; sql: string }>()
   const [running, setRunning] = useState(false)
-  const [copied, setCopied] = useState(false)
   const sqlRef = useRef(sql)
   sqlRef.current = sql
   // which example the next run belongs to; 'custom' once the query is edited
-  const exampleRef = useRef<string>(start.id ?? 'shared')
+  const exampleRef = useRef<string>(start.id)
 
   const run = useCallback(
     async (query = sqlRef.current) => {
@@ -64,23 +58,26 @@ export default function Playground() {
     run(example.sql)
   }
 
-  const share = async () => {
-    const url = new URL(location.href)
-    url.hash = `sql=${encodeShare(sql)}`
-    history.replaceState(null, '', url)
-    await navigator.clipboard?.writeText(url.href)
-    track('playground-share', { example: exampleRef.current })
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
-  }
-
   const reset = async () => {
+    if (!pg || running) return
     track('playground-reset')
+    const started = performance.now()
     setRunning(true)
-    await resetDb('playground')
-    await refreshSchema()
-    setRunning(false)
-    run()
+    try {
+      // A reset must escape an open or failed transaction before changing the schema.
+      await pg.exec('ROLLBACK')
+      await resetDb('playground')
+      await refreshSchema()
+      await run()
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e)
+      setOutcome({
+        result: { ok: false, error: { message: `Reset failed: ${message}` }, ms: performance.now() - started },
+        sql: '',
+      })
+    } finally {
+      setRunning(false)
+    }
   }
 
   const namespace = useMemo(() => toNamespace(schema), [schema])
@@ -116,7 +113,7 @@ export default function Playground() {
           onRun={(text) => run(text)}
           schema={namespace}
           functions={schema.rdkitFunctions}
-          minHeight="10rem"
+          minHeight="7rem"
         />
         <div className="rdkit-toolbar">
           <button type="button" className="rdkit-primary" onClick={() => run()} disabled={!ready || running}>
@@ -126,9 +123,6 @@ export default function Playground() {
           <button type="button" onClick={reset} disabled={!ready || running}>
             Reset data
           </button>
-          <button type="button" onClick={share} disabled={!sql}>
-            {copied ? 'Link copied' : 'Share'}
-          </button>
           <span className={`rdkit-status ${status.state}`}>{statusText(status)}</span>
           {outcome && <span className="rdkit-timing">{outcome.result.ms.toFixed(1)} ms</span>}
         </div>
@@ -136,7 +130,7 @@ export default function Playground() {
           {running ? 'Running…' : outcome ? summarizeOutcome(outcome.result) : ''}
         </p>
         <div className="rdkit-results">
-          {outcome && <ResultTable outcome={outcome.result} sql={outcome.sql} />}
+          {outcome && <ResultTable outcome={outcome.result} sql={outcome.sql} cards />}
         </div>
       </section>
     </div>

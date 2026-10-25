@@ -1,0 +1,1543 @@
+{
+  "env": {
+    "date": "2026-10-24T21:54:19.054Z",
+    "pglite": {
+      "version": "0.5.10",
+      "source": "bench/node_modules/@electric-sql/pglite/ @ v0.0.1-rc.2-8-g0ced371-dirty"
+    },
+    "pgliteRdkit": {
+      "version": "0.0.0",
+      "source": "package/ @ v0.0.1-rc.2-8-g0ced371-dirty"
+    },
+    "dataset": {
+      "source": "MolPILE molpile_subset_1M.parquet @ efc4515",
+      "seed": 20260924,
+      "molecules": 1000000,
+      "sha256": "b90f5060f5f4b9611ae07407eb55291e73cd7e65f0eaa56a36a0227a7f602691"
+    },
+    "machine": {
+      "platform": "darwin 27.0.0 arm64",
+      "cpu": "Apple M4",
+      "cores": 10,
+      "memoryGB": 24
+    },
+    "node": "v24.19.0",
+    "runtime": "native PostgreSQL in Docker (1 CPU)",
+    "server": {
+      "image": "ghcr.io/asiomchen/rdkit-postgres:postgres18.6-rdkit2026.09.1",
+      "digest": "ghcr.io/asiomchen/rdkit-postgres@sha256:97cfdef674fa48e9f46b9e7813e9d0aaed8359b66b1d50855aec651b48f214de",
+      "cpus": 1,
+      "docker": "29.4.0",
+      "vm": "OrbStack, 10 CPUs, 12600156160 bytes",
+      "settings": {
+        "fsync": "off",
+        "io_method": "sync",
+        "max_worker_processes": "0",
+        "max_parallel_workers": "0",
+        "max_parallel_workers_per_gather": "0",
+        "max_parallel_maintenance_workers": "0",
+        "shared_buffers": "128MB",
+        "work_mem": "4MB",
+        "maintenance_work_mem": "64MB",
+        "autovacuum": "off",
+        "jit": "off"
+      }
+    }
+  },
+  "runs": [
+    {
+      "storage": "server",
+      "n": 1000,
+      "replica": 1,
+      "unique": 1000,
+      "dataDir": "memory",
+      "phases": {
+        "startup": 0,
+        "createExtension": 1,
+        "insertSmiles": 2,
+        "parseMols": 68,
+        "morganFp": 34,
+        "gistMol": 168,
+        "gistFp": 2,
+        "analyze": 144,
+        "close": 2
+      },
+      "queries": {
+        "substructure benzene (common): count, index": {
+          "ms": 15.5,
+          "result": 486
+        },
+        "substructure benzene (common): count, no index": {
+          "ms": 22.1,
+          "result": 486
+        },
+        "substructure benzene (common): first 100, index": {
+          "ms": 5.5,
+          "result": "100 rows"
+        },
+        "substructure carboxylic acid (SMARTS): count, index": {
+          "ms": 10.2,
+          "result": 52
+        },
+        "substructure carboxylic acid (SMARTS): count, no index": {
+          "ms": 21.6,
+          "result": 52
+        },
+        "substructure carboxylic acid (SMARTS): first 100, index": {
+          "ms": 10.3,
+          "result": "52 rows"
+        },
+        "substructure quinoline (moderate): count, index": {
+          "ms": 1.9,
+          "result": 9
+        },
+        "substructure quinoline (moderate): count, no index": {
+          "ms": 23.2,
+          "result": 9
+        },
+        "substructure quinoline (moderate): first 100, index": {
+          "ms": 1.8,
+          "result": "9 rows"
+        },
+        "substructure steroid core (rare): count, index": {
+          "ms": 2.6,
+          "result": 2
+        },
+        "substructure steroid core (rare): count, no index": {
+          "ms": 23.4,
+          "result": 2
+        },
+        "substructure steroid core (rare): first 100, index": {
+          "ms": 2.7,
+          "result": "2 rows"
+        },
+        "similarity aspirin tanimoto >= 0.5: index": {
+          "ms": 0.4,
+          "result": 0
+        },
+        "similarity aspirin tanimoto >= 0.5: no index": {
+          "ms": 0.6,
+          "result": 0
+        },
+        "similarity aspirin top 10 (knn): index": {
+          "ms": 0.4,
+          "result": "10 rows"
+        },
+        "similarity caffeine tanimoto >= 0.5: index": {
+          "ms": 0.4,
+          "result": 0
+        },
+        "similarity caffeine tanimoto >= 0.5: no index": {
+          "ms": 0.6,
+          "result": 0
+        },
+        "similarity caffeine top 10 (knn): index": {
+          "ms": 0.4,
+          "result": "10 rows"
+        },
+        "exact match @=: index": {
+          "ms": 0.4,
+          "result": 0
+        },
+        "mol_amw over all rows": {
+          "ms": 18.6,
+          "result": "330.1"
+        },
+        "mol_to_svg 100 rows": {
+          "ms": 55,
+          "result": "100 rows"
+        }
+      },
+      "memory": {
+        "start": {
+          "wasmHeapMB": null,
+          "containerMB": 143
+        },
+        "startup": {
+          "wasmHeapMB": null,
+          "containerMB": 143
+        },
+        "createExtension": {
+          "wasmHeapMB": null,
+          "containerMB": 143
+        },
+        "insertSmiles": {
+          "wasmHeapMB": null,
+          "containerMB": 145
+        },
+        "parseMols": {
+          "wasmHeapMB": null,
+          "containerMB": 147
+        },
+        "morganFp": {
+          "wasmHeapMB": null,
+          "containerMB": 148
+        },
+        "gistMol": {
+          "wasmHeapMB": null,
+          "containerMB": 148
+        },
+        "gistFp": {
+          "wasmHeapMB": null,
+          "containerMB": 149
+        },
+        "analyze": {
+          "wasmHeapMB": null,
+          "containerMB": 153
+        },
+        "end": {
+          "wasmHeapMB": null,
+          "containerMB": 154
+        },
+        "close": {
+          "wasmHeapMB": null,
+          "containerMB": 148
+        }
+      },
+      "rdkitVersion": "2026.09.1",
+      "postgresVersion": "18.6",
+      "settings": {
+        "maintenance_work_mem": "65536 kB",
+        "shared_buffers": "16384 8kB",
+        "work_mem": "4096 kB"
+      },
+      "parseFailures": 0,
+      "sizesMB": {
+        "db": 9,
+        "mols": 1,
+        "fps": 0,
+        "molidx": 0,
+        "fpidx": 0
+      },
+      "peakContainerMB": 158
+    },
+    {
+      "storage": "server",
+      "n": 10000,
+      "replica": 1,
+      "unique": 10000,
+      "dataDir": "memory",
+      "phases": {
+        "startup": 0,
+        "createExtension": 0,
+        "insertSmiles": 6,
+        "parseMols": 600,
+        "morganFp": 316,
+        "gistMol": 1512,
+        "gistFp": 19,
+        "analyze": 2000,
+        "close": 2
+      },
+      "queries": {
+        "substructure benzene (common): count, index": {
+          "ms": 132.9,
+          "result": 4738
+        },
+        "substructure benzene (common): count, no index": {
+          "ms": 205.9,
+          "result": 4738
+        },
+        "substructure benzene (common): first 100, index": {
+          "ms": 3.8,
+          "result": "100 rows"
+        },
+        "substructure carboxylic acid (SMARTS): count, index": {
+          "ms": 90.9,
+          "result": 550
+        },
+        "substructure carboxylic acid (SMARTS): count, no index": {
+          "ms": 200.4,
+          "result": 550
+        },
+        "substructure carboxylic acid (SMARTS): first 100, index": {
+          "ms": 18.8,
+          "result": "100 rows"
+        },
+        "substructure quinoline (moderate): count, index": {
+          "ms": 9.4,
+          "result": 117
+        },
+        "substructure quinoline (moderate): count, no index": {
+          "ms": 218.1,
+          "result": 117
+        },
+        "substructure quinoline (moderate): first 100, index": {
+          "ms": 8.8,
+          "result": "100 rows"
+        },
+        "substructure steroid core (rare): count, index": {
+          "ms": 12.1,
+          "result": 21
+        },
+        "substructure steroid core (rare): count, no index": {
+          "ms": 211.3,
+          "result": 21
+        },
+        "substructure steroid core (rare): first 100, index": {
+          "ms": 12.1,
+          "result": "21 rows"
+        },
+        "similarity aspirin tanimoto >= 0.5: index": {
+          "ms": 0.6,
+          "result": 0
+        },
+        "similarity aspirin tanimoto >= 0.5: no index": {
+          "ms": 3.5,
+          "result": 0
+        },
+        "similarity aspirin top 10 (knn): index": {
+          "ms": 0.5,
+          "result": "10 rows"
+        },
+        "similarity caffeine tanimoto >= 0.5: index": {
+          "ms": 0.6,
+          "result": 0
+        },
+        "similarity caffeine tanimoto >= 0.5: no index": {
+          "ms": 3.5,
+          "result": 0
+        },
+        "similarity caffeine top 10 (knn): index": {
+          "ms": 0.5,
+          "result": "10 rows"
+        },
+        "exact match @=: index": {
+          "ms": 0.5,
+          "result": 0
+        },
+        "mol_amw over all rows": {
+          "ms": 169.8,
+          "result": "328.0"
+        },
+        "mol_to_svg 100 rows": {
+          "ms": 55.7,
+          "result": "100 rows"
+        }
+      },
+      "memory": {
+        "start": {
+          "wasmHeapMB": null,
+          "containerMB": 60
+        },
+        "startup": {
+          "wasmHeapMB": null,
+          "containerMB": 60
+        },
+        "createExtension": {
+          "wasmHeapMB": null,
+          "containerMB": 60
+        },
+        "insertSmiles": {
+          "wasmHeapMB": null,
+          "containerMB": 64
+        },
+        "parseMols": {
+          "wasmHeapMB": null,
+          "containerMB": 69
+        },
+        "morganFp": {
+          "wasmHeapMB": null,
+          "containerMB": 69
+        },
+        "gistMol": {
+          "wasmHeapMB": null,
+          "containerMB": 91
+        },
+        "gistFp": {
+          "wasmHeapMB": null,
+          "containerMB": 94
+        },
+        "analyze": {
+          "wasmHeapMB": null,
+          "containerMB": 100
+        },
+        "end": {
+          "wasmHeapMB": null,
+          "containerMB": 104
+        },
+        "close": {
+          "wasmHeapMB": null,
+          "containerMB": 95
+        }
+      },
+      "rdkitVersion": "2026.09.1",
+      "postgresVersion": "18.6",
+      "settings": {
+        "maintenance_work_mem": "65536 kB",
+        "shared_buffers": "16384 8kB",
+        "work_mem": "4096 kB"
+      },
+      "parseFailures": 0,
+      "sizesMB": {
+        "db": 19,
+        "mols": 5,
+        "fps": 1,
+        "molidx": 4,
+        "fpidx": 1
+      },
+      "peakContainerMB": 107
+    },
+    {
+      "storage": "server",
+      "n": 100000,
+      "replica": 1,
+      "unique": 100000,
+      "dataDir": "memory",
+      "phases": {
+        "startup": 0,
+        "createExtension": 1,
+        "insertSmiles": 78,
+        "parseMols": 7064,
+        "morganFp": 3453,
+        "gistMol": 15535,
+        "gistFp": 275,
+        "analyze": 7251,
+        "close": 3
+      },
+      "queries": {
+        "substructure benzene (common): count, index": {
+          "ms": 1676.8,
+          "result": 47610
+        },
+        "substructure benzene (common): count, no index": {
+          "ms": 2365.4,
+          "result": 47610
+        },
+        "substructure benzene (common): first 100, index": {
+          "ms": 7.8,
+          "result": "100 rows"
+        },
+        "substructure carboxylic acid (SMARTS): count, index": {
+          "ms": 1215.6,
+          "result": 5343
+        },
+        "substructure carboxylic acid (SMARTS): count, no index": {
+          "ms": 2366.5,
+          "result": 5343
+        },
+        "substructure carboxylic acid (SMARTS): first 100, index": {
+          "ms": 23,
+          "result": "100 rows"
+        },
+        "substructure quinoline (moderate): count, index": {
+          "ms": 385.8,
+          "result": 1179
+        },
+        "substructure quinoline (moderate): count, no index": {
+          "ms": 2506.7,
+          "result": 1179
+        },
+        "substructure quinoline (moderate): first 100, index": {
+          "ms": 10.7,
+          "result": "100 rows"
+        },
+        "substructure steroid core (rare): count, index": {
+          "ms": 525.1,
+          "result": 193
+        },
+        "substructure steroid core (rare): count, no index": {
+          "ms": 2578.3,
+          "result": 193
+        },
+        "substructure steroid core (rare): first 100, index": {
+          "ms": 110.3,
+          "result": "100 rows"
+        },
+        "similarity aspirin tanimoto >= 0.5: index": {
+          "ms": 3.1,
+          "result": 2
+        },
+        "similarity aspirin tanimoto >= 0.5: no index": {
+          "ms": 43.6,
+          "result": 2
+        },
+        "similarity aspirin top 10 (knn): index": {
+          "ms": 2.9,
+          "result": "10 rows"
+        },
+        "similarity caffeine tanimoto >= 0.5: index": {
+          "ms": 3,
+          "result": 0
+        },
+        "similarity caffeine tanimoto >= 0.5: no index": {
+          "ms": 31.7,
+          "result": 0
+        },
+        "similarity caffeine top 10 (knn): index": {
+          "ms": 2,
+          "result": "10 rows"
+        },
+        "exact match @=: index": {
+          "ms": 1.4,
+          "result": 0
+        },
+        "mol_amw over all rows": {
+          "ms": 1987.2,
+          "result": "328.5"
+        },
+        "mol_to_svg 100 rows": {
+          "ms": 55.5,
+          "result": "100 rows"
+        }
+      },
+      "memory": {
+        "start": {
+          "wasmHeapMB": null,
+          "containerMB": 60
+        },
+        "startup": {
+          "wasmHeapMB": null,
+          "containerMB": 59
+        },
+        "createExtension": {
+          "wasmHeapMB": null,
+          "containerMB": 60
+        },
+        "insertSmiles": {
+          "wasmHeapMB": null,
+          "containerMB": 94
+        },
+        "parseMols": {
+          "wasmHeapMB": null,
+          "containerMB": 143
+        },
+        "morganFp": {
+          "wasmHeapMB": null,
+          "containerMB": 162
+        },
+        "gistMol": {
+          "wasmHeapMB": null,
+          "containerMB": 425
+        },
+        "gistFp": {
+          "wasmHeapMB": null,
+          "containerMB": 470
+        },
+        "analyze": {
+          "wasmHeapMB": null,
+          "containerMB": 308
+        },
+        "end": {
+          "wasmHeapMB": null,
+          "containerMB": 295
+        },
+        "close": {
+          "wasmHeapMB": null,
+          "containerMB": 265
+        }
+      },
+      "rdkitVersion": "2026.09.1",
+      "postgresVersion": "18.6",
+      "settings": {
+        "maintenance_work_mem": "65536 kB",
+        "shared_buffers": "16384 8kB",
+        "work_mem": "4096 kB"
+      },
+      "parseFailures": 0,
+      "sizesMB": {
+        "db": 117,
+        "mols": 44,
+        "fps": 10,
+        "molidx": 41,
+        "fpidx": 15
+      },
+      "peakContainerMB": 784
+    },
+    {
+      "storage": "server",
+      "n": 1000,
+      "replica": 2,
+      "unique": 1000,
+      "dataDir": "memory",
+      "phases": {
+        "startup": 0,
+        "createExtension": 1,
+        "insertSmiles": 1,
+        "parseMols": 69,
+        "morganFp": 34,
+        "gistMol": 170,
+        "gistFp": 2,
+        "analyze": 143,
+        "close": 1
+      },
+      "queries": {
+        "substructure benzene (common): count, index": {
+          "ms": 15.5,
+          "result": 486
+        },
+        "substructure benzene (common): count, no index": {
+          "ms": 22.3,
+          "result": 486
+        },
+        "substructure benzene (common): first 100, index": {
+          "ms": 5.2,
+          "result": "100 rows"
+        },
+        "substructure carboxylic acid (SMARTS): count, index": {
+          "ms": 10,
+          "result": 52
+        },
+        "substructure carboxylic acid (SMARTS): count, no index": {
+          "ms": 21.7,
+          "result": 52
+        },
+        "substructure carboxylic acid (SMARTS): first 100, index": {
+          "ms": 10.2,
+          "result": "52 rows"
+        },
+        "substructure quinoline (moderate): count, index": {
+          "ms": 1.8,
+          "result": 9
+        },
+        "substructure quinoline (moderate): count, no index": {
+          "ms": 23.4,
+          "result": 9
+        },
+        "substructure quinoline (moderate): first 100, index": {
+          "ms": 1.8,
+          "result": "9 rows"
+        },
+        "substructure steroid core (rare): count, index": {
+          "ms": 2.7,
+          "result": 2
+        },
+        "substructure steroid core (rare): count, no index": {
+          "ms": 23.4,
+          "result": 2
+        },
+        "substructure steroid core (rare): first 100, index": {
+          "ms": 2.6,
+          "result": "2 rows"
+        },
+        "similarity aspirin tanimoto >= 0.5: index": {
+          "ms": 0.4,
+          "result": 0
+        },
+        "similarity aspirin tanimoto >= 0.5: no index": {
+          "ms": 0.6,
+          "result": 0
+        },
+        "similarity aspirin top 10 (knn): index": {
+          "ms": 0.4,
+          "result": "10 rows"
+        },
+        "similarity caffeine tanimoto >= 0.5: index": {
+          "ms": 0.3,
+          "result": 0
+        },
+        "similarity caffeine tanimoto >= 0.5: no index": {
+          "ms": 0.6,
+          "result": 0
+        },
+        "similarity caffeine top 10 (knn): index": {
+          "ms": 0.4,
+          "result": "10 rows"
+        },
+        "exact match @=: index": {
+          "ms": 0.4,
+          "result": 0
+        },
+        "mol_amw over all rows": {
+          "ms": 18.6,
+          "result": "330.1"
+        },
+        "mol_to_svg 100 rows": {
+          "ms": 54.8,
+          "result": "100 rows"
+        }
+      },
+      "memory": {
+        "start": {
+          "wasmHeapMB": null,
+          "containerMB": 100
+        },
+        "startup": {
+          "wasmHeapMB": null,
+          "containerMB": 100
+        },
+        "createExtension": {
+          "wasmHeapMB": null,
+          "containerMB": 100
+        },
+        "insertSmiles": {
+          "wasmHeapMB": null,
+          "containerMB": 101
+        },
+        "parseMols": {
+          "wasmHeapMB": null,
+          "containerMB": 103
+        },
+        "morganFp": {
+          "wasmHeapMB": null,
+          "containerMB": 104
+        },
+        "gistMol": {
+          "wasmHeapMB": null,
+          "containerMB": 104
+        },
+        "gistFp": {
+          "wasmHeapMB": null,
+          "containerMB": 105
+        },
+        "analyze": {
+          "wasmHeapMB": null,
+          "containerMB": 110
+        },
+        "end": {
+          "wasmHeapMB": null,
+          "containerMB": 110
+        },
+        "close": {
+          "wasmHeapMB": null,
+          "containerMB": 104
+        }
+      },
+      "rdkitVersion": "2026.09.1",
+      "postgresVersion": "18.6",
+      "settings": {
+        "maintenance_work_mem": "65536 kB",
+        "shared_buffers": "16384 8kB",
+        "work_mem": "4096 kB"
+      },
+      "parseFailures": 0,
+      "sizesMB": {
+        "db": 9,
+        "mols": 1,
+        "fps": 0,
+        "molidx": 0,
+        "fpidx": 0
+      },
+      "peakContainerMB": 114
+    },
+    {
+      "storage": "server",
+      "n": 10000,
+      "replica": 2,
+      "unique": 10000,
+      "dataDir": "memory",
+      "phases": {
+        "startup": 0,
+        "createExtension": 1,
+        "insertSmiles": 9,
+        "parseMols": 574,
+        "morganFp": 314,
+        "gistMol": 1484,
+        "gistFp": 19,
+        "analyze": 1994,
+        "close": 2
+      },
+      "queries": {
+        "substructure benzene (common): count, index": {
+          "ms": 133.3,
+          "result": 4738
+        },
+        "substructure benzene (common): count, no index": {
+          "ms": 202.5,
+          "result": 4738
+        },
+        "substructure benzene (common): first 100, index": {
+          "ms": 3.8,
+          "result": "100 rows"
+        },
+        "substructure carboxylic acid (SMARTS): count, index": {
+          "ms": 89.4,
+          "result": 550
+        },
+        "substructure carboxylic acid (SMARTS): count, no index": {
+          "ms": 203.8,
+          "result": 550
+        },
+        "substructure carboxylic acid (SMARTS): first 100, index": {
+          "ms": 18.6,
+          "result": "100 rows"
+        },
+        "substructure quinoline (moderate): count, index": {
+          "ms": 9.3,
+          "result": 117
+        },
+        "substructure quinoline (moderate): count, no index": {
+          "ms": 217.9,
+          "result": 117
+        },
+        "substructure quinoline (moderate): first 100, index": {
+          "ms": 9.1,
+          "result": "100 rows"
+        },
+        "substructure steroid core (rare): count, index": {
+          "ms": 12,
+          "result": 21
+        },
+        "substructure steroid core (rare): count, no index": {
+          "ms": 217.1,
+          "result": 21
+        },
+        "substructure steroid core (rare): first 100, index": {
+          "ms": 12.1,
+          "result": "21 rows"
+        },
+        "similarity aspirin tanimoto >= 0.5: index": {
+          "ms": 0.6,
+          "result": 0
+        },
+        "similarity aspirin tanimoto >= 0.5: no index": {
+          "ms": 3.4,
+          "result": 0
+        },
+        "similarity aspirin top 10 (knn): index": {
+          "ms": 0.7,
+          "result": "10 rows"
+        },
+        "similarity caffeine tanimoto >= 0.5: index": {
+          "ms": 0.6,
+          "result": 0
+        },
+        "similarity caffeine tanimoto >= 0.5: no index": {
+          "ms": 3.4,
+          "result": 0
+        },
+        "similarity caffeine top 10 (knn): index": {
+          "ms": 0.5,
+          "result": "10 rows"
+        },
+        "exact match @=: index": {
+          "ms": 0.5,
+          "result": 0
+        },
+        "mol_amw over all rows": {
+          "ms": 165.1,
+          "result": "328.0"
+        },
+        "mol_to_svg 100 rows": {
+          "ms": 56.1,
+          "result": "100 rows"
+        }
+      },
+      "memory": {
+        "start": {
+          "wasmHeapMB": null,
+          "containerMB": 60
+        },
+        "startup": {
+          "wasmHeapMB": null,
+          "containerMB": 60
+        },
+        "createExtension": {
+          "wasmHeapMB": null,
+          "containerMB": 60
+        },
+        "insertSmiles": {
+          "wasmHeapMB": null,
+          "containerMB": 64
+        },
+        "parseMols": {
+          "wasmHeapMB": null,
+          "containerMB": 68
+        },
+        "morganFp": {
+          "wasmHeapMB": null,
+          "containerMB": 69
+        },
+        "gistMol": {
+          "wasmHeapMB": null,
+          "containerMB": 91
+        },
+        "gistFp": {
+          "wasmHeapMB": null,
+          "containerMB": 93
+        },
+        "analyze": {
+          "wasmHeapMB": null,
+          "containerMB": 100
+        },
+        "end": {
+          "wasmHeapMB": null,
+          "containerMB": 104
+        },
+        "close": {
+          "wasmHeapMB": null,
+          "containerMB": 95
+        }
+      },
+      "rdkitVersion": "2026.09.1",
+      "postgresVersion": "18.6",
+      "settings": {
+        "maintenance_work_mem": "65536 kB",
+        "shared_buffers": "16384 8kB",
+        "work_mem": "4096 kB"
+      },
+      "parseFailures": 0,
+      "sizesMB": {
+        "db": 19,
+        "mols": 5,
+        "fps": 1,
+        "molidx": 4,
+        "fpidx": 1
+      },
+      "peakContainerMB": 107
+    },
+    {
+      "storage": "server",
+      "n": 100000,
+      "replica": 2,
+      "unique": 100000,
+      "dataDir": "memory",
+      "phases": {
+        "startup": 0,
+        "createExtension": 1,
+        "insertSmiles": 69,
+        "parseMols": 7091,
+        "morganFp": 3477,
+        "gistMol": 15522,
+        "gistFp": 271,
+        "analyze": 7334,
+        "close": 3
+      },
+      "queries": {
+        "substructure benzene (common): count, index": {
+          "ms": 1646.1,
+          "result": 47610
+        },
+        "substructure benzene (common): count, no index": {
+          "ms": 2377,
+          "result": 47610
+        },
+        "substructure benzene (common): first 100, index": {
+          "ms": 7.8,
+          "result": "100 rows"
+        },
+        "substructure carboxylic acid (SMARTS): count, index": {
+          "ms": 1222.8,
+          "result": 5343
+        },
+        "substructure carboxylic acid (SMARTS): count, no index": {
+          "ms": 2360.2,
+          "result": 5343
+        },
+        "substructure carboxylic acid (SMARTS): first 100, index": {
+          "ms": 23.7,
+          "result": "100 rows"
+        },
+        "substructure quinoline (moderate): count, index": {
+          "ms": 387.3,
+          "result": 1179
+        },
+        "substructure quinoline (moderate): count, no index": {
+          "ms": 2530.7,
+          "result": 1179
+        },
+        "substructure quinoline (moderate): first 100, index": {
+          "ms": 10.1,
+          "result": "100 rows"
+        },
+        "substructure steroid core (rare): count, index": {
+          "ms": 514.1,
+          "result": 193
+        },
+        "substructure steroid core (rare): count, no index": {
+          "ms": 2584.6,
+          "result": 193
+        },
+        "substructure steroid core (rare): first 100, index": {
+          "ms": 113,
+          "result": "100 rows"
+        },
+        "similarity aspirin tanimoto >= 0.5: index": {
+          "ms": 3,
+          "result": 2
+        },
+        "similarity aspirin tanimoto >= 0.5: no index": {
+          "ms": 31.3,
+          "result": 2
+        },
+        "similarity aspirin top 10 (knn): index": {
+          "ms": 2.8,
+          "result": "10 rows"
+        },
+        "similarity caffeine tanimoto >= 0.5: index": {
+          "ms": 3,
+          "result": 0
+        },
+        "similarity caffeine tanimoto >= 0.5: no index": {
+          "ms": 31.1,
+          "result": 0
+        },
+        "similarity caffeine top 10 (knn): index": {
+          "ms": 2.1,
+          "result": "10 rows"
+        },
+        "exact match @=: index": {
+          "ms": 1.2,
+          "result": 0
+        },
+        "mol_amw over all rows": {
+          "ms": 2016.2,
+          "result": "328.5"
+        },
+        "mol_to_svg 100 rows": {
+          "ms": 55.9,
+          "result": "100 rows"
+        }
+      },
+      "memory": {
+        "start": {
+          "wasmHeapMB": null,
+          "containerMB": 60
+        },
+        "startup": {
+          "wasmHeapMB": null,
+          "containerMB": 60
+        },
+        "createExtension": {
+          "wasmHeapMB": null,
+          "containerMB": 60
+        },
+        "insertSmiles": {
+          "wasmHeapMB": null,
+          "containerMB": 94
+        },
+        "parseMols": {
+          "wasmHeapMB": null,
+          "containerMB": 144
+        },
+        "morganFp": {
+          "wasmHeapMB": null,
+          "containerMB": 159
+        },
+        "gistMol": {
+          "wasmHeapMB": null,
+          "containerMB": 426
+        },
+        "gistFp": {
+          "wasmHeapMB": null,
+          "containerMB": 473
+        },
+        "analyze": {
+          "wasmHeapMB": null,
+          "containerMB": 310
+        },
+        "end": {
+          "wasmHeapMB": null,
+          "containerMB": 338
+        },
+        "close": {
+          "wasmHeapMB": null,
+          "containerMB": 308
+        }
+      },
+      "rdkitVersion": "2026.09.1",
+      "postgresVersion": "18.6",
+      "settings": {
+        "maintenance_work_mem": "65536 kB",
+        "shared_buffers": "16384 8kB",
+        "work_mem": "4096 kB"
+      },
+      "parseFailures": 0,
+      "sizesMB": {
+        "db": 118,
+        "mols": 44,
+        "fps": 10,
+        "molidx": 41,
+        "fpidx": 16
+      },
+      "peakContainerMB": 772
+    },
+    {
+      "storage": "server",
+      "n": 1000,
+      "replica": 3,
+      "unique": 1000,
+      "dataDir": "memory",
+      "phases": {
+        "startup": 0,
+        "createExtension": 1,
+        "insertSmiles": 1,
+        "parseMols": 69,
+        "morganFp": 33,
+        "gistMol": 168,
+        "gistFp": 2,
+        "analyze": 143,
+        "close": 2
+      },
+      "queries": {
+        "substructure benzene (common): count, index": {
+          "ms": 15.3,
+          "result": 486
+        },
+        "substructure benzene (common): count, no index": {
+          "ms": 22.1,
+          "result": 486
+        },
+        "substructure benzene (common): first 100, index": {
+          "ms": 5.1,
+          "result": "100 rows"
+        },
+        "substructure carboxylic acid (SMARTS): count, index": {
+          "ms": 10.1,
+          "result": 52
+        },
+        "substructure carboxylic acid (SMARTS): count, no index": {
+          "ms": 21.9,
+          "result": 52
+        },
+        "substructure carboxylic acid (SMARTS): first 100, index": {
+          "ms": 10.1,
+          "result": "52 rows"
+        },
+        "substructure quinoline (moderate): count, index": {
+          "ms": 1.8,
+          "result": 9
+        },
+        "substructure quinoline (moderate): count, no index": {
+          "ms": 23.6,
+          "result": 9
+        },
+        "substructure quinoline (moderate): first 100, index": {
+          "ms": 1.8,
+          "result": "9 rows"
+        },
+        "substructure steroid core (rare): count, index": {
+          "ms": 2.7,
+          "result": 2
+        },
+        "substructure steroid core (rare): count, no index": {
+          "ms": 23.3,
+          "result": 2
+        },
+        "substructure steroid core (rare): first 100, index": {
+          "ms": 2.7,
+          "result": "2 rows"
+        },
+        "similarity aspirin tanimoto >= 0.5: index": {
+          "ms": 0.4,
+          "result": 0
+        },
+        "similarity aspirin tanimoto >= 0.5: no index": {
+          "ms": 0.6,
+          "result": 0
+        },
+        "similarity aspirin top 10 (knn): index": {
+          "ms": 0.4,
+          "result": "10 rows"
+        },
+        "similarity caffeine tanimoto >= 0.5: index": {
+          "ms": 0.4,
+          "result": 0
+        },
+        "similarity caffeine tanimoto >= 0.5: no index": {
+          "ms": 0.6,
+          "result": 0
+        },
+        "similarity caffeine top 10 (knn): index": {
+          "ms": 0.3,
+          "result": "10 rows"
+        },
+        "exact match @=: index": {
+          "ms": 0.4,
+          "result": 0
+        },
+        "mol_amw over all rows": {
+          "ms": 18.6,
+          "result": "330.1"
+        },
+        "mol_to_svg 100 rows": {
+          "ms": 54.8,
+          "result": "100 rows"
+        }
+      },
+      "memory": {
+        "start": {
+          "wasmHeapMB": null,
+          "containerMB": 89
+        },
+        "startup": {
+          "wasmHeapMB": null,
+          "containerMB": 89
+        },
+        "createExtension": {
+          "wasmHeapMB": null,
+          "containerMB": 89
+        },
+        "insertSmiles": {
+          "wasmHeapMB": null,
+          "containerMB": 91
+        },
+        "parseMols": {
+          "wasmHeapMB": null,
+          "containerMB": 93
+        },
+        "morganFp": {
+          "wasmHeapMB": null,
+          "containerMB": 93
+        },
+        "gistMol": {
+          "wasmHeapMB": null,
+          "containerMB": 94
+        },
+        "gistFp": {
+          "wasmHeapMB": null,
+          "containerMB": 94
+        },
+        "analyze": {
+          "wasmHeapMB": null,
+          "containerMB": 99
+        },
+        "end": {
+          "wasmHeapMB": null,
+          "containerMB": 100
+        },
+        "close": {
+          "wasmHeapMB": null,
+          "containerMB": 94
+        }
+      },
+      "rdkitVersion": "2026.09.1",
+      "postgresVersion": "18.6",
+      "settings": {
+        "maintenance_work_mem": "65536 kB",
+        "shared_buffers": "16384 8kB",
+        "work_mem": "4096 kB"
+      },
+      "parseFailures": 0,
+      "sizesMB": {
+        "db": 9,
+        "mols": 1,
+        "fps": 0,
+        "molidx": 0,
+        "fpidx": 0
+      },
+      "peakContainerMB": 103
+    },
+    {
+      "storage": "server",
+      "n": 10000,
+      "replica": 3,
+      "unique": 10000,
+      "dataDir": "memory",
+      "phases": {
+        "startup": 0,
+        "createExtension": 1,
+        "insertSmiles": 9,
+        "parseMols": 584,
+        "morganFp": 316,
+        "gistMol": 1490,
+        "gistFp": 19,
+        "analyze": 2007,
+        "close": 2
+      },
+      "queries": {
+        "substructure benzene (common): count, index": {
+          "ms": 133.8,
+          "result": 4738
+        },
+        "substructure benzene (common): count, no index": {
+          "ms": 207.2,
+          "result": 4738
+        },
+        "substructure benzene (common): first 100, index": {
+          "ms": 3.7,
+          "result": "100 rows"
+        },
+        "substructure carboxylic acid (SMARTS): count, index": {
+          "ms": 90.3,
+          "result": 550
+        },
+        "substructure carboxylic acid (SMARTS): count, no index": {
+          "ms": 204.2,
+          "result": 550
+        },
+        "substructure carboxylic acid (SMARTS): first 100, index": {
+          "ms": 18.5,
+          "result": "100 rows"
+        },
+        "substructure quinoline (moderate): count, index": {
+          "ms": 9.3,
+          "result": 117
+        },
+        "substructure quinoline (moderate): count, no index": {
+          "ms": 220.9,
+          "result": 117
+        },
+        "substructure quinoline (moderate): first 100, index": {
+          "ms": 8.9,
+          "result": "100 rows"
+        },
+        "substructure steroid core (rare): count, index": {
+          "ms": 12.1,
+          "result": 21
+        },
+        "substructure steroid core (rare): count, no index": {
+          "ms": 212.1,
+          "result": 21
+        },
+        "substructure steroid core (rare): first 100, index": {
+          "ms": 12.2,
+          "result": "21 rows"
+        },
+        "similarity aspirin tanimoto >= 0.5: index": {
+          "ms": 0.7,
+          "result": 0
+        },
+        "similarity aspirin tanimoto >= 0.5: no index": {
+          "ms": 3.5,
+          "result": 0
+        },
+        "similarity aspirin top 10 (knn): index": {
+          "ms": 0.6,
+          "result": "10 rows"
+        },
+        "similarity caffeine tanimoto >= 0.5: index": {
+          "ms": 0.6,
+          "result": 0
+        },
+        "similarity caffeine tanimoto >= 0.5: no index": {
+          "ms": 3.4,
+          "result": 0
+        },
+        "similarity caffeine top 10 (knn): index": {
+          "ms": 0.5,
+          "result": "10 rows"
+        },
+        "exact match @=: index": {
+          "ms": 0.5,
+          "result": 0
+        },
+        "mol_amw over all rows": {
+          "ms": 166,
+          "result": "328.0"
+        },
+        "mol_to_svg 100 rows": {
+          "ms": 54.5,
+          "result": "100 rows"
+        }
+      },
+      "memory": {
+        "start": {
+          "wasmHeapMB": null,
+          "containerMB": 60
+        },
+        "startup": {
+          "wasmHeapMB": null,
+          "containerMB": 60
+        },
+        "createExtension": {
+          "wasmHeapMB": null,
+          "containerMB": 60
+        },
+        "insertSmiles": {
+          "wasmHeapMB": null,
+          "containerMB": 64
+        },
+        "parseMols": {
+          "wasmHeapMB": null,
+          "containerMB": 69
+        },
+        "morganFp": {
+          "wasmHeapMB": null,
+          "containerMB": 69
+        },
+        "gistMol": {
+          "wasmHeapMB": null,
+          "containerMB": 91
+        },
+        "gistFp": {
+          "wasmHeapMB": null,
+          "containerMB": 94
+        },
+        "analyze": {
+          "wasmHeapMB": null,
+          "containerMB": 100
+        },
+        "end": {
+          "wasmHeapMB": null,
+          "containerMB": 104
+        },
+        "close": {
+          "wasmHeapMB": null,
+          "containerMB": 95
+        }
+      },
+      "rdkitVersion": "2026.09.1",
+      "postgresVersion": "18.6",
+      "settings": {
+        "maintenance_work_mem": "65536 kB",
+        "shared_buffers": "16384 8kB",
+        "work_mem": "4096 kB"
+      },
+      "parseFailures": 0,
+      "sizesMB": {
+        "db": 19,
+        "mols": 5,
+        "fps": 1,
+        "molidx": 4,
+        "fpidx": 1
+      },
+      "peakContainerMB": 108
+    },
+    {
+      "storage": "server",
+      "n": 100000,
+      "replica": 3,
+      "unique": 100000,
+      "dataDir": "memory",
+      "phases": {
+        "startup": 0,
+        "createExtension": 1,
+        "insertSmiles": 75,
+        "parseMols": 7067,
+        "morganFp": 3454,
+        "gistMol": 15532,
+        "gistFp": 281,
+        "analyze": 7903,
+        "close": 4
+      },
+      "queries": {
+        "substructure benzene (common): count, index": {
+          "ms": 1657.2,
+          "result": 47610
+        },
+        "substructure benzene (common): count, no index": {
+          "ms": 2368.8,
+          "result": 47610
+        },
+        "substructure benzene (common): first 100, index": {
+          "ms": 9.1,
+          "result": "100 rows"
+        },
+        "substructure carboxylic acid (SMARTS): count, index": {
+          "ms": 1218.2,
+          "result": 5343
+        },
+        "substructure carboxylic acid (SMARTS): count, no index": {
+          "ms": 2361.2,
+          "result": 5343
+        },
+        "substructure carboxylic acid (SMARTS): first 100, index": {
+          "ms": 23.4,
+          "result": "100 rows"
+        },
+        "substructure quinoline (moderate): count, index": {
+          "ms": 386.4,
+          "result": 1179
+        },
+        "substructure quinoline (moderate): count, no index": {
+          "ms": 2500.4,
+          "result": 1179
+        },
+        "substructure quinoline (moderate): first 100, index": {
+          "ms": 10.2,
+          "result": "100 rows"
+        },
+        "substructure steroid core (rare): count, index": {
+          "ms": 522.4,
+          "result": 193
+        },
+        "substructure steroid core (rare): count, no index": {
+          "ms": 2576.4,
+          "result": 193
+        },
+        "substructure steroid core (rare): first 100, index": {
+          "ms": 109.7,
+          "result": "100 rows"
+        },
+        "similarity aspirin tanimoto >= 0.5: index": {
+          "ms": 3,
+          "result": 2
+        },
+        "similarity aspirin tanimoto >= 0.5: no index": {
+          "ms": 31.5,
+          "result": 2
+        },
+        "similarity aspirin top 10 (knn): index": {
+          "ms": 2.9,
+          "result": "10 rows"
+        },
+        "similarity caffeine tanimoto >= 0.5: index": {
+          "ms": 3.1,
+          "result": 0
+        },
+        "similarity caffeine tanimoto >= 0.5: no index": {
+          "ms": 31.2,
+          "result": 0
+        },
+        "similarity caffeine top 10 (knn): index": {
+          "ms": 1.9,
+          "result": "10 rows"
+        },
+        "exact match @=: index": {
+          "ms": 1.2,
+          "result": 0
+        },
+        "mol_amw over all rows": {
+          "ms": 2015.3,
+          "result": "328.5"
+        },
+        "mol_to_svg 100 rows": {
+          "ms": 56.9,
+          "result": "100 rows"
+        }
+      },
+      "memory": {
+        "start": {
+          "wasmHeapMB": null,
+          "containerMB": 60
+        },
+        "startup": {
+          "wasmHeapMB": null,
+          "containerMB": 60
+        },
+        "createExtension": {
+          "wasmHeapMB": null,
+          "containerMB": 60
+        },
+        "insertSmiles": {
+          "wasmHeapMB": null,
+          "containerMB": 94
+        },
+        "parseMols": {
+          "wasmHeapMB": null,
+          "containerMB": 145
+        },
+        "morganFp": {
+          "wasmHeapMB": null,
+          "containerMB": 160
+        },
+        "gistMol": {
+          "wasmHeapMB": null,
+          "containerMB": 427
+        },
+        "gistFp": {
+          "wasmHeapMB": null,
+          "containerMB": 473
+        },
+        "analyze": {
+          "wasmHeapMB": null,
+          "containerMB": 309
+        },
+        "end": {
+          "wasmHeapMB": null,
+          "containerMB": 312
+        },
+        "close": {
+          "wasmHeapMB": null,
+          "containerMB": 282
+        }
+      },
+      "rdkitVersion": "2026.09.1",
+      "postgresVersion": "18.6",
+      "settings": {
+        "maintenance_work_mem": "65536 kB",
+        "shared_buffers": "16384 8kB",
+        "work_mem": "4096 kB"
+      },
+      "parseFailures": 0,
+      "sizesMB": {
+        "db": 117,
+        "mols": 44,
+        "fps": 10,
+        "molidx": 41,
+        "fpidx": 15
+      },
+      "peakContainerMB": 769
+    }
+  ]
+}

@@ -30,22 +30,9 @@ export const MAX_ROWS = 1000
 
 const TX_STATUS: Record<string, TxStatus> = { I: 'idle', T: 'transaction', E: 'failed' }
 
-// PGlite has no way to feed COPY data to the backend, which then exits and takes the database down with it
-const COPY_FROM_STDIN = /\bcopy\b[^;]*\bfrom\s+stdin\b/i
-
 /** Runs one or more statements and returns one result per statement that produced rows. */
 export async function runSql(pg: PGliteWorker, sql: string): Promise<RunOutcome> {
   const started = performance.now()
-  if (COPY_FROM_STDIN.test(sql)) {
-    return {
-      ok: false,
-      error: {
-        message: 'COPY FROM STDIN is not supported in the browser REPL',
-        hint: 'Use INSERT ... VALUES to add rows.',
-      },
-      ms: performance.now() - started,
-    }
-  }
   let raw: RawResult
   try {
     raw = await simpleQuery(pg, sql, MAX_ROWS)

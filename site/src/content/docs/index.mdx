@@ -9,7 +9,7 @@ hero:
     alt: Caffeine, drawn by RDKit's mol_to_svg
     dark: ../../assets/hero-dark.svg
     light: ../../assets/hero-light.svg
-  tagline: RDKit Postgres Cartridge, running in your browser. Store, search and draw molecules with SQL, no PostgreSQL server needed.
+  tagline: RDKit Postgres Cartridge, running in your browser.<br />Store, search and draw molecules with SQL.<br />No PostgreSQL server needed.
   actions:
     - text: Open the Playground
       link: /playground/
@@ -92,8 +92,10 @@ Only `@electric-sql/pglite` 0.5.x (`>=0.5.0 <0.6.0`, PostgreSQL 18) is supported
 release is tested in CI.
 :::
 
-Invalid SMILES raises a normal Postgres error, and the database stays usable. For every function
-and operator, see the [RDKit cartridge documentation](https://www.rdkit.org/docs/Cartridge.html).
+For every function and operator, see the [RDKit cartridge documentation](https://www.rdkit.org/docs/Cartridge.html).
+
+For PGlite itself, such as storing the database in IndexedDB or OPFS, running it in a Web Worker,
+or live queries, see the [PGlite documentation](https://pglite.dev/docs/).
 
 ## Differences from Server RDKit
 
@@ -105,7 +107,8 @@ The WebAssembly build leaves out three RDKit components:
 
 - **Avalon**: `avalon_fp` raises an error
 - **Coordgen**: 2D coordinates use RDKit's default depiction
-- **FreeType**: text in SVG drawings is drawn as paths
+- **FreeType**: SVG text is emitted as `<text>` elements that use browser fonts; molecular bonds
+  can still be drawn as paths
 
 The README explains
 [how the extension is built](https://github.com/asiomchen/pglite-rdkit#how-it-works) and

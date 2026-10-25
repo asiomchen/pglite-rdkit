@@ -110,12 +110,13 @@ tested rather than assumed. See the
 ## Not included
 
 The build leaves out Avalon, Coordgen and FreeType: `avalon_fp` raises an error, 2D
-coordinates use RDKit's default depiction, and SVG text is drawn as paths. InChI is
-included (`mol_inchi`, `mol_inchikey`).
+coordinates use RDKit's default depiction, and SVG text is emitted as `<text>` elements
+that use browser fonts. Molecular bonds can still be drawn as paths. InChI is included
+(`mol_inchi`, `mol_inchikey`).
 
 ## Bundle size
 
-The extension tarball is about 2.1 MB gzipped (the wasm side module is 8.0 MB
+The extension tarball is about 2.2 MB gzipped (the wasm side module is 8.1 MB
 uncompressed; InChI accounts for about 0.4 MB of the download). It is downloaded only when you pass `rdkit` to `extensions`.
 
 ## How it works
@@ -187,6 +188,7 @@ cd examples/playground && npm install && npm run dev
 | `scripts/features.sh` | Optional extras for a separate variant build (`RDKIT_FEATURES=avalon`) |
 | `package/` | The npm package (`pglite-rdkit`), its tests, and the example queries (`pglite-rdkit/examples`) |
 | `examples/playground/` | Browser playground |
+| `bench/` | Size, speed and memory benchmark in the browser and Node, rerunnable on later releases ([details](https://github.com/asiomchen/pglite-rdkit/blob/main/bench/README.md)) |
 | `site/` | The website, [pglite-rdkit.cheminfo.dev](https://pglite-rdkit.cheminfo.dev): landing page, playground and REPL ([details](https://github.com/asiomchen/pglite-rdkit/blob/main/site/README.md)) |
 | `.github/workflows/compat.yml` | CI: build once, then test each release and check the site builds; daily schedule |
 | `.github/workflows/release.yml` | On a `v*` semver tag: CI, then stage on npm and draft a GitHub release |
@@ -194,28 +196,29 @@ cd examples/playground && npm install && npm run dev
 
 ### README
 
-This file is the only README. Edit it here at the repository root; `package/README.md` is a
-generated copy for npm. Run `./scripts/sync-readme.sh` after editing (`npm pack` and
-`npm publish` also run it). CI fails if the copy is out of date. Links to repository files
-are absolute GitHub URLs so they also work on npmjs.com.
+This file is the only README. Edit it here at the repository root; `package/README.md` is a generated copy for npm. Run `./scripts/sync-readme.sh` after editing (`npm pack` and `npm publish` also run it). CI fails if the copy is out of date. Links to repository files are absolute GitHub URLs so they also work on npmjs.com.
 
 ### Releasing
 
-Push a semver tag, for example `git tag v0.1.0 && git push origin v0.1.0`. `release.yml` runs the
-build and the full compatibility matrix, then stages `pglite-rdkit` on npm with the tag's version
-(`package/package.json` stays at `0.0.0`) and creates a draft GitHub release with the same npm
-tarball and `rdkit.tar.gz`. Nothing is public yet. To finish:
+Every version goes through `release.yml`; nothing is published by hand. Push a semver tag, for
+example `git tag v0.1.0 && git push origin v0.1.0`. The workflow runs the build and the full compatibility matrix, then stages `pglite-rdkit` on npm with the tag's version
+(`package/package.json` stays at `0.0.0`) and creates a draft GitHub release with the same npm tarball and `rdkit.tar.gz`. To finish:
 
-1. `npm stage list pglite-rdkit`, then `npm stage approve <stage-id>` (asks for 2FA).
+1. Approve the staged version: `npm stage approve <stage-id>` (asks for 2FA). The stage id is in
+   the workflow's job summary and the draft release notes; `npm stage list pglite-rdkit` also
+   shows it.
 2. Publish the draft GitHub release. For a stable version this deploys the docs.
 
-A prerelease tag such as `v0.2.0-rc.1` goes to the `next` dist-tag and doesn't deploy the docs.
-Staging needs the package to exist on npm, so the first version is published by hand with
-`npm publish`. To redeploy the docs on their own, run the **Deploy docs** workflow from the
-Actions tab with a version, or leave it empty for the `latest` release on npm.
 
-The workflows need the `NPM_TOKEN` (any granular token with write access; staging never asks
-for 2FA), `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets.
+To redeploy the docs on their own, run the **Deploy docs** workflow from the Actions tab with a
+version, or leave it empty for the `latest` release on npm.
+
+npm authentication uses a [trusted publisher](https://docs.npmjs.com/trusted-publishers/)
+(OIDC), not a token. It is configured on npmjs.com for this repository, the `release.yml`
+workflow and the `npm` environment; all three must match, so renaming the workflow file or the
+environment needs the same change on npm (`npm trust list pglite-rdkit` shows the current
+setting). The OIDC token can only stage, so approval always needs a maintainer with 2FA. The
+docs workflow needs the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets.
 
 ### Updating
 
@@ -233,6 +236,9 @@ for 2FA), `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets.
 
 ## License
 
-The wrapper and the RDKit cartridge are BSD-3-Clause. The bundle also includes Boost
-header-only code (BSL-1.0), the LLVM libc++/libc++abi/libunwind runtime (Apache-2.0 WITH
+The wrapper, the RDKit cartridge, RingDecomposerLib and Novartis-contributed RDKit code are
+BSD-3-Clause. The bundle also includes Boost headers and static serialization/iostreams
+libraries (BSL-1.0), the LLVM libc++/libc++abi/libunwind runtime (Apache-2.0 WITH
 LLVM-exception) and the InChI library (MIT). See [LICENSE](https://github.com/asiomchen/pglite-rdkit/blob/main/package/LICENSE).
+
+The extension archive also includes the complete license file at `share/doc/rdkit/LICENSE`.
