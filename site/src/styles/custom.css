@@ -572,3 +572,228 @@
 .rdkit-demo .rdkit-results {
   max-height: 32rem;
 }
+
+/* ---- performance page (components/Performance.tsx) ---- */
+/* the charts are Vega-Lite; their colors are in Performance.tsx, as Vega needs literal values */
+.rdkit-perf {
+  --rdkit-chart-surface: var(--sl-color-gray-6);
+  display: grid;
+  /* minmax(0, ...): the charts measure their column, so it mustn't grow to fit them */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2.5rem;
+  -webkit-font-smoothing: antialiased;
+}
+.rdkit-perf-h {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--sl-color-white);
+}
+.rdkit-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.75rem;
+}
+.rdkit-tile {
+  /* the label takes the spare height, so values and notes line up across a row even when a
+     label wraps */
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--rdkit-chart-surface);
+}
+.rdkit-tile-label {
+  flex: 1;
+  color: var(--sl-color-gray-2);
+  font-size: var(--sl-text-sm);
+}
+.rdkit-tile-value {
+  margin-top: 0.25rem;
+  color: var(--sl-color-white);
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.rdkit-tile-note {
+  margin-top: 0.25rem;
+  color: var(--sl-color-gray-3);
+  font-size: var(--sl-text-xs);
+}
+.rdkit-query-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+.rdkit-query-picker button {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 999px;
+  background: none;
+  color: var(--sl-color-gray-2);
+  font: inherit;
+  font-size: var(--sl-text-sm);
+  cursor: pointer;
+}
+.rdkit-query-picker button:hover {
+  color: var(--sl-color-white);
+  border-color: var(--sl-color-gray-4);
+}
+.rdkit-query-picker button[aria-pressed='true'] {
+  background: var(--sl-color-accent-low);
+  border-color: var(--sl-color-accent);
+  color: var(--sl-color-accent-high);
+  font-weight: 600;
+}
+.rdkit-perf-sql {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  background: var(--rdkit-editor-bg);
+  color: var(--sl-color-gray-2);
+  font-family: var(--__sl-font-mono);
+  font-size: 0.8125rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.rdkit-chart {
+  margin: 0;
+  padding: 1rem 1rem 0.75rem;
+  border-radius: 12px;
+  background: var(--rdkit-chart-surface);
+}
+.rdkit-chart-title {
+  color: var(--sl-color-gray-2);
+  font-size: var(--sl-text-sm);
+}
+.rdkit-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--sl-color-gray-2);
+  font-size: var(--sl-text-xs);
+}
+.rdkit-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.rdkit-legend .key {
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+}
+.rdkit-vega {
+  width: 100%;
+  /* the chart's rendered height, so switching queries (a new Vega view) doesn't jump the page */
+  min-height: 290px;
+  margin-top: 0.5rem;
+}
+.rdkit-vega svg {
+  display: block;
+}
+/* vega-tooltip's element, appended to <body>; theme: 'custom' leaves the look to us */
+#vg-tooltip-element.custom-theme {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 8px;
+  background: var(--sl-color-black);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+  color: var(--sl-color-gray-2);
+  font-family: var(--sl-font);
+  font-size: var(--sl-text-xs);
+  -webkit-font-smoothing: antialiased;
+}
+.rdkit-tooltip-head {
+  margin-bottom: 0.35rem;
+  color: var(--sl-color-gray-3);
+}
+.rdkit-tooltip-row {
+  display: grid;
+  grid-template-columns: 14px 4.5rem auto;
+  align-items: baseline;
+  gap: 0.5rem;
+  color: var(--sl-color-gray-2);
+  white-space: nowrap;
+}
+.rdkit-tooltip-row + .rdkit-tooltip-row {
+  margin-top: 0.2rem;
+}
+.rdkit-tooltip-row .key {
+  align-self: center;
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+}
+/* the replicas' range, on its own line under the environment */
+.rdkit-tooltip-row .rdkit-range {
+  display: block;
+  font-size: 0.6875rem;
+}
+.rdkit-tooltip-row strong {
+  color: var(--sl-color-white);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+.rdkit-chart-table {
+  margin-top: 0.5rem;
+  font-size: var(--sl-text-sm);
+}
+.rdkit-chart-table summary {
+  color: var(--sl-color-gray-3);
+  cursor: pointer;
+}
+.rdkit-chart-table .rdkit-table-wrap {
+  margin-top: 0.5rem;
+}
+.rdkit-perf table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.8125rem;
+}
+.rdkit-perf th,
+.rdkit-perf td {
+  padding: 0.35rem 0.75rem;
+  border-bottom: 1px solid var(--sl-color-hairline);
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.rdkit-perf th:first-child {
+  text-align: start;
+}
+.rdkit-perf thead th {
+  color: var(--sl-color-gray-2);
+  font-weight: 600;
+}
+.rdkit-range {
+  color: var(--sl-color-gray-3);
+}
+.rdkit-setup {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.35rem 1.25rem;
+  margin: 0;
+  font-size: var(--sl-text-sm);
+}
+.rdkit-setup dt {
+  color: var(--sl-color-gray-3);
+}
+.rdkit-setup dd {
+  margin: 0;
+  color: var(--sl-color-gray-2);
+  overflow-wrap: anywhere;
+}
+@media (max-width: 40rem) {
+  .rdkit-setup {
+    grid-template-columns: 1fr;
+  }
+  .rdkit-setup dd {
+    margin-bottom: 0.5rem;
+  }
+}

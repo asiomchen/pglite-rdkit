@@ -186,6 +186,7 @@ cd examples/playground && npm install && npm run dev
 | `scripts/features.sh` | Optional extras for a separate variant build (`RDKIT_FEATURES=avalon`) |
 | `package/` | The npm package (`pglite-rdkit`), its tests, and the example queries (`pglite-rdkit/examples`) |
 | `examples/playground/` | Browser playground |
+| `bench/` | Size, speed and memory benchmark in the browser and Node, rerunnable on later releases ([details](https://github.com/asiomchen/pglite-rdkit/blob/main/bench/README.md)) |
 | `site/` | The website, [pglite-rdkit.cheminfo.dev](https://pglite-rdkit.cheminfo.dev): landing page, playground and REPL ([details](https://github.com/asiomchen/pglite-rdkit/blob/main/site/README.md)) |
 | `.github/workflows/compat.yml` | CI: build once, then test each release and check the site builds; daily schedule |
 | `.github/workflows/release.yml` | On a `v*` semver tag: CI, then stage on npm and draft a GitHub release |
