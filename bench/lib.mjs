@@ -1,9 +1,10 @@
 // Helpers shared by the runners (node.mjs, browser.mjs) and data.mjs.
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
+import { createReadStream, existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import { dirname, join, relative, resolve } from 'node:path'
+import { createInterface } from 'node:readline'
 import { fileURLToPath } from 'node:url'
 
 export const HERE = dirname(fileURLToPath(import.meta.url))
@@ -31,12 +32,20 @@ export function sizes(list) {
     .map((s) => Math.round(Number(s.trim().replace(/k$/i, 'e3').replace(/m$/i, 'e6'))))
 }
 
+const DATASET = join(HERE, 'data/mols.smi')
+
+// the whole dataset, for the runner process; measured processes stream it with readSmiles()
 export function readDataset() {
-  const path = join(HERE, 'data/mols.smi')
+  const path = DATASET
   if (!existsSync(path)) throw new Error('data/mols.smi is missing: run `npm run data` first')
   const text = readFileSync(path, 'utf8')
   const meta = JSON.parse(readFileSync(join(HERE, 'data/mols.json'), 'utf8'))
   return { smiles: text.trim().split('\n'), ...meta, sha256: createHash('sha256').update(text).digest('hex') }
+}
+
+/** Streams data/mols.smi line by line, so the reading process never holds all of it. */
+export async function* readSmiles() {
+  for await (const line of createInterface({ input: createReadStream(DATASET), crlfDelay: Infinity })) if (line) yield line
 }
 
 function packageInfo(name) {

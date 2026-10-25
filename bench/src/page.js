@@ -19,6 +19,25 @@ const log = (msg) => {
 const memory = () =>
   performance.memory ? { jsHeapMB: Math.round(performance.memory.usedJSHeapSize / 2 ** 20) } : {}
 
+// streams /mols.smi line by line, so the tab never holds the whole dataset
+async function* readSmiles() {
+  const reader = (await fetch('/mols.smi')).body.pipeThrough(new TextDecoderStream()).getReader()
+  let rest = ''
+  try {
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      const lines = (rest + value).split('\n')
+      rest = lines.pop()
+      for (const line of lines) if (line) yield line
+    }
+    if (rest) yield rest
+  } finally {
+    // stops the download when the benchmark has read enough rows
+    reader.cancel().catch(() => {})
+  }
+}
+
 window.__bench = { done: false }
 try {
   const dataDir = params.get('dataDir') || undefined
@@ -26,12 +45,10 @@ try {
   if (params.get('reopen') === '1') {
     result = await runReopen({ PGlite, rdkit, dataDir, log, memory })
   } else {
-    const text = await (await fetch('/mols.smi')).text()
-    const smiles = text.trim().split('\n')
     result = await runBenchmark({
       PGlite,
       rdkit,
-      smiles,
+      smiles: readSmiles,
       n: Number(params.get('n') ?? 10000),
       dataDir,
       queries: params.get('queries') !== '0',

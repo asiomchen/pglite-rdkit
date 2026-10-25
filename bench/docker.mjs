@@ -102,7 +102,10 @@ for (let replica = 1; replica <= args.replicas; replica++) for (const n of sizes
     run = await runBenchmark({
       PGlite: Server,
       rdkit: null,
-      smiles: dataset.smiles,
+      // the client isn't measured, so it keeps the whole dataset
+      smiles: async function* () {
+        yield* dataset.smiles
+      },
       n,
       queries: args.queries,
       runs: args.runs,

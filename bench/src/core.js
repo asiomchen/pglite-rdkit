@@ -26,7 +26,9 @@ export function wasmHeapMB(pg) {
  * @param {object} o
  * @param {typeof import('@electric-sql/pglite').PGlite} o.PGlite
  * @param {object} o.rdkit                the pglite-rdkit extension
- * @param {string[]} o.smiles             the dataset
+ * @param {() => AsyncIterable<string>} o.smiles  reads the dataset once, one SMILES per item; read
+ *                                        again while more than n rows are needed, so the measured
+ *                                        process holds one chunk of it at a time, not all of it
  * @param {number} o.n                    rows to load
  * @param {string} [o.dataDir]            PGlite dataDir (memory when omitted)
  * @param {boolean} [o.queries=true]      false: load and index only (for finding the size limit)
@@ -35,7 +37,7 @@ export function wasmHeapMB(pg) {
  * @param {() => object} [o.memory]       extra memory figures from the environment
  */
 export async function runBenchmark({ PGlite, rdkit, smiles, n, dataDir, queries = true, runs = 3, log = () => {}, memory = () => ({}) }) {
-  const out = { n, unique: Math.min(n, smiles.length), dataDir: dataDir ?? 'memory', phases: {}, queries: {}, memory: {} }
+  const out = { n, unique: 0, dataDir: dataDir ?? 'memory', phases: {}, queries: {}, memory: {} }
   let pg
   const snapshot = (label) => {
     out.memory[label] = { wasmHeapMB: wasmHeapMB(pg), ...memory() }
@@ -71,7 +73,8 @@ export async function runBenchmark({ PGlite, rdkit, smiles, n, dataDir, queries 
 
   try {
     snapshot('start')
-    pg = await phase('startup', () => PGlite.create({ dataDir, extensions: { rdkit } }))
+    // assigned inside the phase, so its snapshot already sees the new instance's heap
+    await phase('startup', async () => (pg = await PGlite.create({ dataDir, extensions: { rdkit } })))
     await phase('createExtension', () => pg.exec('CREATE EXTENSION IF NOT EXISTS rdkit'))
     out.rdkitVersion = (await pg.query('SELECT rdkit_toolkit_version() AS v')).rows[0].v
     out.postgresVersion = (await pg.query('SHOW server_version')).rows[0].server_version
@@ -82,10 +85,26 @@ export async function runBenchmark({ PGlite, rdkit, smiles, n, dataDir, queries 
 
     await pg.exec('CREATE TABLE raw (id int, smi text)')
     await phase('insertSmiles', async () => {
-      for (let i = 0; i < n; i += 20000) {
-        const chunk = Array.from({ length: Math.min(20000, n - i) }, (_, j) => smiles[(i + j) % smiles.length])
+      let i = 0
+      let chunk = []
+      const flush = async () => {
         await pg.query('INSERT INTO raw SELECT i + $2, s FROM unnest($1::text[]) WITH ORDINALITY AS t(s, i)', [chunk, i])
+        i += chunk.length
+        chunk = []
       }
+      // the dataset repeated when n is larger
+      while (i + chunk.length < n) {
+        let read = 0
+        for await (const s of smiles()) {
+          chunk.push(s)
+          read++
+          if (chunk.length === 20000) await flush()
+          if (i + chunk.length === n) break
+        }
+        if (!read) throw new Error('the dataset is empty')
+        out.unique ||= read
+      }
+      if (chunk.length) await flush()
     })
     await phase('parseMols', () => pg.exec('CREATE TABLE mols AS SELECT id, mol_from_smiles(smi::cstring) AS m FROM raw'))
     out.parseFailures = (await pg.query('SELECT count(*)::int AS c FROM mols WHERE m IS NULL')).rows[0].c

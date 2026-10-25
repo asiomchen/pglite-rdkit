@@ -3,7 +3,7 @@
 import { PGlite } from '@electric-sql/pglite'
 import { rdkit } from 'pglite-rdkit'
 import { runBenchmark, runReopen } from './src/core.js'
-import { readDataset } from './lib.mjs'
+import { readSmiles } from './lib.mjs'
 
 const job = JSON.parse(process.argv[2])
 const log = (msg) => process.stderr.write(`[bench] ${msg}\n`)
@@ -15,6 +15,6 @@ const memory = () => {
 
 const result = job.reopen
   ? await runReopen({ PGlite, rdkit, dataDir: job.dataDir, log, memory })
-  : await runBenchmark({ PGlite, rdkit, smiles: readDataset().smiles, ...job, log, memory })
+  : await runBenchmark({ PGlite, rdkit, smiles: readSmiles, ...job, log, memory })
 process.stdout.write(JSON.stringify(result) + '\n')
 process.exit(0)
