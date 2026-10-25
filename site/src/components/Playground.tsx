@@ -113,7 +113,7 @@ export default function Playground() {
           onRun={(text) => run(text)}
           schema={namespace}
           functions={schema.rdkitFunctions}
-          minHeight="10rem"
+          minHeight="7rem"
         />
         <div className="rdkit-toolbar">
           <button type="button" className="rdkit-primary" onClick={() => run()} disabled={!ready || running}>
@@ -130,7 +130,7 @@ export default function Playground() {
           {running ? 'Running…' : outcome ? summarizeOutcome(outcome.result) : ''}
         </p>
         <div className="rdkit-results">
-          {outcome && <ResultTable outcome={outcome.result} sql={outcome.sql} />}
+          {outcome && <ResultTable outcome={outcome.result} sql={outcome.sql} cards />}
         </div>
       </section>
     </div>

@@ -60,7 +60,7 @@ export default function LiveDemo() {
       </div>
       {outcome && (
         <div className="rdkit-results">
-          <ResultTable outcome={outcome} sql={sql} />
+          <ResultTable outcome={outcome} sql={sql} cards />
         </div>
       )}
     </div>
