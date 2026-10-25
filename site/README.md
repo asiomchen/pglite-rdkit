@@ -24,10 +24,10 @@ The site uses the local package, so build the extension and the package first:
 
 ```bash
 ./scripts/build.sh && (cd package && npm ci && npm run build)
-cd site && pnpm install && pnpm run dev
+cd site && npm install && npm run dev
 ```
 
-`pnpm run build` type-checks (`astro check`), builds into `dist/` and validates internal
+`npm run build` type-checks (`astro check`), builds into `dist/` and validates internal
 links.
 
 ## Deploy

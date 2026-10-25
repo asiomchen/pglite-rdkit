@@ -106,16 +106,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # the version comes from packageManager in site/package.json
-      - uses: pnpm/action-setup@v4
-        with:
-          package_json_file: site/package.json
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: site/pnpm-lock.yaml
 
       - uses: actions/download-artifact@v4
         with:
@@ -128,4 +121,4 @@ jobs:
 
       - name: Build site
         working-directory: site
-        run: pnpm install --frozen-lockfile && pnpm run build
+        run: npm ci --no-audit --no-fund && npm run build
