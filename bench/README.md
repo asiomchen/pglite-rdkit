@@ -62,7 +62,8 @@ npm install                           # back to package/ and the reference PGlit
 `docker.mjs` runs the same steps against native PostgreSQL with the RDKit cartridge, from the
 [cheminfo_db_images](https://github.com/asiomchen/cheminfo_db_images) images. The default
 `ghcr.io/asiomchen/rdkit-postgres:postgres18.6-rdkit2026.09.1` matches the PostgreSQL and RDKit
-versions of the reference build; pass `--image` with the matching tag after an update. Each size
+versions of the recorded October 2026 benchmarks; pass `--image` with a tag matching the
+RDKit version under test when benchmarking a newer release. Each size
 gets a fresh container limited to one core (`--cpus 1 --cpuset-cpus 0`, since PGlite never uses
 more) and started with PGlite's settings: `fsync=off`, `io_method=sync`, no parallel or background
 workers, `shared_buffers=128MB`, `work_mem=4MB`, `maintenance_work_mem=64MB`, and `autovacuum` and

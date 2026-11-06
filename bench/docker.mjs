@@ -14,8 +14,8 @@ import { runBenchmark } from './src/core.js'
 import { environment, parseArgs, readDataset, resultPath, save, sizes } from './lib.mjs'
 import { summarize } from './report.mjs'
 
-// Images from https://github.com/asiomchen/cheminfo_db_images; this tag matches the PostgreSQL
-// (18.6) and RDKit (2026.09.1) versions of the pglite 0.5.10 reference build
+// Images from https://github.com/asiomchen/cheminfo_db_images; this tag matches the recorded
+// October 2026 baseline (PostgreSQL 18.6, RDKit 2026.09.1). Use --image for newer versions.
 const args = parseArgs(process.argv.slice(2), {
   image: 'ghcr.io/asiomchen/rdkit-postgres:postgres18.6-rdkit2026.09.1',
   sizes: '10k,50k,100k',
