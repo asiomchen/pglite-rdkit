@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { readFileSync } from 'node:fs'
 import { PGlite } from '@electric-sql/pglite'
 import { rdkit } from '../src/index.js'
 
@@ -37,7 +38,7 @@ describe(`rdkit`, () => {
     const res = await pg.query<{ version: string }>(
       `SELECT rdkit_toolkit_version() AS version;`,
     )
-    expect(res.rows[0].version).toBe('2026.09.1')
+    expect(res.rows[0].version).toBe('2026.09.2')
   })
 
   it('parses and canonicalizes SMILES', async () => {
@@ -64,6 +65,31 @@ describe(`rdkit`, () => {
       `SELECT mol_numatoms('CCO'::mol) AS n;`,
     )
     expect(res.rows[0].n).toBe(9)
+  })
+
+  it.each(['mol', 'qmol'])('ignores malformed query JSON for %s and keeps the database usable', async (type) => {
+    const { rows } = await pg.query<{ smarts: string; fallback: string }>(`
+      SELECT mol_to_smarts(mol_adjust_query_properties('Cc1ccccc1'::${type}, '{"adjustDegree":false')) AS smarts,
+             mol_to_smarts(mol_adjust_query_properties('Cc1ccccc1'::${type})) AS fallback;
+    `)
+    expect(rows).toHaveLength(1)
+    expect(rows[0].smarts).toBe(rows[0].fallback)
+    expect(rows[0].smarts).toContain('&D3')
+    expect((await pg.query<{ n: number }>('SELECT 1 AS n')).rows).toEqual([{ n: 1 }])
+  })
+
+  it('runs the cartridge 4.7.0 to 4.8.0 upgrade script', async () => {
+    // Reuse the installed schema to exercise every ALTER FUNCTION in the shipped update script.
+    // This checks SQL compatibility; it does not simulate a complete 4.7.0 database migration.
+    await pg.exec(`
+      UPDATE pg_extension SET extversion = '4.7.0' WHERE extname = 'rdkit';
+      ALTER EXTENSION rdkit UPDATE TO '4.8.0';
+    `)
+    const { rows } = await pg.query<{ version: string; atoms: number }>(`
+      SELECT extversion AS version, qmol_numheavyatoms('CCO'::qmol) AS atoms
+      FROM pg_extension WHERE extname = 'rdkit';
+    `)
+    expect(rows).toEqual([{ version: '4.8.0', atoms: 3 }])
   })
 
   it('computes descriptors', async () => {
@@ -165,6 +191,47 @@ describe(`rdkit`, () => {
       `SELECT id FROM fps WHERE fp % morganbv_fp('c1ccccc1O'::mol) ORDER BY id;`,
     )
     expect(similar.rows.map((r) => r.id)).toEqual([1, 2])
+  })
+
+  it.each([
+    { metric: 'tanimoto', operator: '<%>' },
+    { metric: 'dice', operator: '<#>' },
+  ])('returns the exact $metric nearest neighbors through a multi-page GiST index', async ({ metric, operator }) => {
+    // RDKit's bfpknn_data fixture (BSD-3-Clause), from Release_2026_09_2.
+    // Similar benzamides force inner-node traversal, where the upstream distance bug occurred.
+    const molecules = readFileSync(new URL('./fixtures/bfpknn.tsv', import.meta.url), 'utf8')
+      .trim().split('\n').map((line) => line.split('\t')[1])
+    await pg.exec('SET rdkit.morgan_fp_size = 512; CREATE TABLE knn_fps (id int, fp bfp);')
+    await pg.query(`
+      INSERT INTO knn_fps
+      SELECT id::int, morganbv_fp(smiles::mol)
+      FROM unnest($1::text[]) WITH ORDINALITY AS molecules(smiles, id);
+    `, [molecules])
+    await pg.exec(`
+      CREATE INDEX knn_fps_idx ON knn_fps USING gist (fp);
+      CREATE TABLE knn_query AS SELECT morganbv_fp('CCc1ccc(C(=O)NCc2ccccc2)cc1'::mol) AS fp;
+    `)
+    const size = await pg.query<{ pages: number }>(`
+      SELECT (pg_relation_size('knn_fps_idx') / current_setting('block_size')::int)::int AS pages;
+    `)
+    expect(size.rows[0].pages).toBeGreaterThanOrEqual(3)
+
+    await pg.exec('SET enable_indexscan = off; SET enable_bitmapscan = off; SET enable_seqscan = on;')
+    const exact = await pg.query<{ distance: number }>(`
+      SELECT 1.0 - ${metric}_sml(fp, (SELECT fp FROM knn_query)) AS distance
+      FROM knn_fps ORDER BY distance LIMIT 10;
+    `)
+    await pg.exec('SET enable_indexscan = on; SET enable_seqscan = off;')
+    const query = `
+      SELECT fp ${operator} (SELECT fp FROM knn_query) AS distance
+      FROM knn_fps ORDER BY fp ${operator} (SELECT fp FROM knn_query) LIMIT 10;
+    `
+    const plan = await pg.query<{ 'QUERY PLAN': string }>(`EXPLAIN ${query}`)
+    expect(plan.rows.map((row) => row['QUERY PLAN']).join('\n')).toMatch(/Index (Only )?Scan using knn_fps_idx/)
+    const indexed = await pg.query<{ distance: number }>(query)
+    expect(indexed.rows).toHaveLength(10)
+    // Equal-distance molecules may come back in any order, so compare distances rather than ids.
+    indexed.rows.forEach((row, i) => expect(row.distance).toBeCloseTo(exact.rows[i].distance, 10))
   })
 
   it('computes InChI and InChIKey', async () => {

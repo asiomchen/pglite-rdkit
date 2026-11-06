@@ -18,6 +18,9 @@ import Performance from '../../components/Performance.tsx'
 :::caution
 PGlite is still in alpha. These numbers are a snapshot of the versions listed below, and speed,
 memory use and limits may change with later PGlite and pglite-rdkit releases.
+
+These measurements use RDKit 2026.09.1, before the GiST nearest-neighbor correctness fix in
+2026.09.2. The top-10 query timings need to be measured again with the corrected search.
 :::
 
 <Performance client:only="react" />

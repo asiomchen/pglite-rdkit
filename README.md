@@ -1,6 +1,6 @@
 # pglite-rdkit
 
-[![CI](https://github.com/asiomchen/pglite-rdkit/actions/workflows/compat.yml/badge.svg)](https://github.com/asiomchen/pglite-rdkit/actions/workflows/compat.yml) [![npm](https://img.shields.io/npm/v/pglite-rdkit)](https://www.npmjs.com/package/pglite-rdkit) [![PGlite](https://img.shields.io/badge/%40electric--sql%2Fpglite-0.5.x%20(PostgreSQL%2018)-blue)](https://www.npmjs.com/package/@electric-sql/pglite) [![RDKit](https://img.shields.io/badge/RDKit-2026.09.1-blue)](https://github.com/rdkit/rdkit/releases/tag/Release_2026_09_1) [![License](https://img.shields.io/badge/license-BSD--3--Clause%20%2B%20others-blue)](https://github.com/asiomchen/pglite-rdkit/blob/main/package/LICENSE)
+[![CI](https://github.com/asiomchen/pglite-rdkit/actions/workflows/compat.yml/badge.svg)](https://github.com/asiomchen/pglite-rdkit/actions/workflows/compat.yml) [![npm](https://img.shields.io/npm/v/pglite-rdkit)](https://www.npmjs.com/package/pglite-rdkit) [![PGlite](https://img.shields.io/badge/%40electric--sql%2Fpglite-0.5.x%20(PostgreSQL%2018)-blue)](https://www.npmjs.com/package/@electric-sql/pglite) [![RDKit](https://img.shields.io/badge/RDKit-2026.09.2-blue)](https://github.com/rdkit/rdkit/releases/tag/Release_2026_09_2) [![License](https://img.shields.io/badge/license-BSD--3--Clause%20%2B%20others-blue)](https://github.com/asiomchen/pglite-rdkit/blob/main/package/LICENSE)
 
 The [RDKit](https://www.rdkit.org/) PostgreSQL cartridge for
 [PGlite](https://pglite.dev), Postgres in WebAssembly. It adds the `mol`, `qmol`, `bfp`,
@@ -90,8 +90,8 @@ full list of functions and operators.
 
 ## Supported versions
 
-This release ships RDKit 2026.09.1
-([`Release_2026_09_1`](https://github.com/rdkit/rdkit/releases/tag/Release_2026_09_1)), with
+This release ships RDKit 2026.09.2
+([`Release_2026_09_2`](https://github.com/rdkit/rdkit/releases/tag/Release_2026_09_2)), with
 cartridge extension version 4.8.0. `SELECT rdkit_toolkit_version()` returns the RDKit version at
 runtime.
 

@@ -8,7 +8,7 @@ PGlite. For usage and build commands, see [README.md](README.md).
 
 | | |
 |---|---|
-| RDKit | `Release_2026_09_1` (`fece8caa`), cartridge extension version `4.8.0` |
+| RDKit | `Release_2026_09_2` (`f86b7dc9`), cartridge extension version `4.8.0` |
 | PostgreSQL | 18.6 (PGlite, wasm32, `SIZEOF_DATUM=4`, single-threaded) |
 | Supported PGlite | `>=0.5.0 <0.6.0` (peer dependency), each release tested |
 | Reference PGlite | `0.5.10`: headers from `postgres-pglite` `ff7e8412`, image `electricsql/pglite-builder:6.0.12-1` |
@@ -78,7 +78,7 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-  L[UPSTREAM.lock] --> F[fetch-upstream.sh<br/>postgres-pglite ff7e8412<br/>RDKit Release_2026_09_1<br/>Boost 1.87 source<br/>InChI 1.07.3 zip]
+  L[UPSTREAM.lock] --> F[fetch-upstream.sh<br/>postgres-pglite ff7e8412<br/>RDKit Release_2026_09_2<br/>Boost 1.87 source<br/>InChI 1.07.3 zip]
   F --> H[build-pg-headers.sh<br/>VPATH configure + generated headers<br/>→ build/pg/include]
   F --> R[build-rdkit-libs.sh<br/>RDKit static libs, -fwasm-exceptions<br/>→ build/rdkit-install]
   H --> C[build-cartridge.sh<br/>13 cartridge sources + shims<br/>SIDE_MODULE → rdkit.so, SQL, tar]
@@ -311,20 +311,23 @@ rows on 0.5.0, which is why imports are checked rather than inferred from passin
 
 ## Testing and CI
 
-**Unit tests** (`package/tests/rdkit.test.ts`, vitest, 16 tests). One data dir is created and
+**Unit tests** (`package/tests/rdkit.test.ts`, vitest, 21 tests). One data dir is created and
 reused through `dumpDataDir`, and each test runs `CREATE EXTENSION IF NOT EXISTS rdkit`.
 
 | Test | Covers |
 |---|---|
-| version | `rdkit_toolkit_version() = '2026.09.1'` |
+| version | `rdkit_toolkit_version() = '2026.09.2'` |
 | canonical SMILES | `mol_to_smiles` |
 | `is_valid_smiles` | an exception that RDKit catches internally |
 | invalid input | `'C1CCxyz'::mol` → `could not create molecule`, then the backend is still usable (exception → `ereport`) |
+| malformed query JSON (2 cases) | `mol` and `qmol` use default query adjustments and leave the backend usable |
+| cartridge upgrade SQL | execute the 4.7.0 to 4.8.0 update script against the installed schema (SQL compatibility, not a complete migration) |
 | descriptors | `mol_amw`, `mol_logp`, … |
 | substructure | `@>` with a seq scan and a forced GiST index scan give the same rows |
 | extended queries (4 cases) | all four `xqmol` representations, positive/negative matches, text round trips and binary output |
 | extended-query persistence | stored queries retain their type and matching behavior after `dumpDataDir` and reload |
 | similarity | `tanimoto_sml(morganbv_fp…)`, `%` with a GiST index and `rdkit.tanimoto_threshold` |
+| nearest neighbors (2 cases) | Tanimoto and Dice top 10 from a forced multi-page GiST index scan match exhaustive distances |
 | InChI | aspirin InChI and InChIKey, L-alanine stereo layer |
 | InChI options and edge cases | `/FixedH`; `NULL` for a dummy atom and for an empty molecule; backend still usable |
 | SVG | `mol_to_svg` |

@@ -12,8 +12,8 @@ PGLITE_BACKEND_COMMIT=ff7e84124edf0f08e630a80e8c366fa3f0fe2e6e
 PGLITE_BUILDER_IMAGE=electricsql/pglite-builder:6.0.12-1
 
 RDKIT_REPO=https://github.com/rdkit/rdkit.git
-RDKIT_TAG=Release_2026_09_1
-RDKIT_COMMIT=fece8caa860bdf6c9c82bdb9253f22a0cf87150c
+RDKIT_TAG=Release_2026_09_2
+RDKIT_COMMIT=f86b7dc9b31e2531200bbd1f54589bcbd968bb05
 
 BOOST_VERSION=1.87.0
 BOOST_URL=https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz
